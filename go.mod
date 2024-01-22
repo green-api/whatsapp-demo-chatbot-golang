@@ -1,4 +1,4 @@
-module demo-chatbot
+module github.com/green-api/whatsapp-demo-chatbot-golang
 
 go 1.21.6
 

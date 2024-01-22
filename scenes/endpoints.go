@@ -1,10 +1,10 @@
 package scenes
 
 import (
-	"demo-chatbot/model"
-	"demo-chatbot/util"
 	"encoding/json"
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
+	"github.com/green-api/whatsapp-demo-chatbot-golang/model"
+	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 	"log"
 	"strings"
 )

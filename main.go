@@ -1,8 +1,8 @@
 package main
 
 import (
-	"demo-chatbot/scenes"
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
+	"github.com/green-api/whatsapp-demo-chatbot-golang/scenes"
 )
 
 func main() {
