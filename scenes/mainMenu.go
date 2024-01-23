@@ -10,6 +10,8 @@ type MainMenuScene struct {
 
 func (s MainMenuScene) Start(bot *chatbot.Bot) {
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
+		util.SessionCheck(*message)
+
 		text, _ := message.Text()
 		switch text {
 

@@ -14,6 +14,8 @@ type EndpointsScene struct {
 
 func (s EndpointsScene) Start(bot *chatbot.Bot) {
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
+		util.SessionCheck(*message)
+
 		lang := message.GetStateData()["lang"].(string)
 		text, _ := message.Text()
 		senderName := message.Body["senderData"].(map[string]interface{})["senderName"].(string)
