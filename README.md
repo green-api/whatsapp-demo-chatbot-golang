@@ -1,6 +1,6 @@
 # whatsapp-demo-chatbot-golang
 
-- [Documentation in English](README.md).
+- [Документация на русском](README_RU.md).
 
 An example of a chatbot written in Go using the API service for Whatsapp [green-api.com](https://green-api.com/en/).
 The chatbot clearly demonstrates the use of the API to send text messages, files, pictures, locations and contacts.
