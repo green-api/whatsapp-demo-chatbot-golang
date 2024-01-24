@@ -14,15 +14,15 @@ func ContainString(optionVotes []string, targetWid string) bool {
 	return false
 }
 
-func SessionCheck(notification chatbot.Notification) {
+func IsSessionExpired(notification *chatbot.Notification) bool {
 	lastTouchTime, ok := notification.GetStateData()["last_touch_timestamp"].(time.Time)
-	if !ok {
+
+	if ok && time.Since(lastTouchTime).Minutes() > 2 {
+		notification.ActivateNextScene(notification.GetStartScene())
 		notification.UpdateStateData(map[string]interface{}{"last_touch_timestamp": time.Now()})
+		return true
 	}
 
-	if !lastTouchTime.IsZero() && time.Since(lastTouchTime).Minutes() > 2 {
-		notification.ActivateNextScene(notification.GetStartScene())
-	} else {
-		notification.UpdateStateData(map[string]interface{}{"last_touch_timestamp": time.Now()})
-	}
+	notification.UpdateStateData(map[string]interface{}{"last_touch_timestamp": time.Now()})
+	return false
 }

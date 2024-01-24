@@ -143,7 +143,7 @@ There are 3 scenes in the bot:
 - Scene [`mainMenu.go`](scenes/mainMenu.go) - processes the user's selection and sends the main menu text in the selected language. Launches the `Endpoints` scene
 - Scene [`endpoints.go`](scenes/mainMenu.go) - executes the method selected by the user and sends a description of the method in the selected language.
 
-The file [`util.go`](util/util.go) contains the `SessionCheck()` method which is used to set the start scene again if the bot has not been contacted for more than 2 minutes.
+The file [`util.go`](util/util.go) contains the `IsSessionExpired()` method which is used to set the start scene again if the bot has not been contacted for more than 2 minutes.
 
 The file [`ymlReader.go`](util/ymlReader.go) contains the `getString()` method which returns strings from the `strings.xml` file by key. This file is used to store the texts of the bot's responses.
 

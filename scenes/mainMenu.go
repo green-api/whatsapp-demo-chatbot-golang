@@ -10,32 +10,32 @@ type MainMenuScene struct {
 
 func (s MainMenuScene) Start(bot *chatbot.Bot) {
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
-		util.SessionCheck(*message)
+		if !util.IsSessionExpired(message) {
+			text, _ := message.Text()
+			switch text {
 
-		text, _ := message.Text()
-		switch text {
+			case "1":
+				message.UpdateStateData(map[string]interface{}{"lang": "eng"})
+				message.AnswerWithText(
+					util.GetString([]string{"welcome_message", "eng"}) +
+						message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
+						util.GetString([]string{"menu", "eng"}))
 
-		case "1":
-			message.UpdateStateData(map[string]interface{}{"lang": "eng"})
-			message.AnswerWithText(
-				util.GetString([]string{"welcome_message", "eng"}) +
-					message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
-					util.GetString([]string{"menu", "eng"}))
+				message.ActivateNextScene(EndpointsScene{})
 
-			message.ActivateNextScene(EndpointsScene{})
+			case "2":
+				message.UpdateStateData(map[string]interface{}{"lang": "ru"})
+				message.AnswerWithText(
+					util.GetString([]string{"welcome_message", "ru"}) +
+						message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
+						util.GetString([]string{"menu", "ru"}))
 
-		case "2":
-			message.UpdateStateData(map[string]interface{}{"lang": "ru"})
-			message.AnswerWithText(
-				util.GetString([]string{"welcome_message", "ru"}) +
-					message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
-					util.GetString([]string{"menu", "ru"}))
+				message.ActivateNextScene(EndpointsScene{})
 
-			message.ActivateNextScene(EndpointsScene{})
-
-		default:
-			message.AnswerWithText(
-				util.GetString([]string{"specify_language"}))
+			default:
+				message.AnswerWithText(
+					util.GetString([]string{"specify_language"}))
+			}
 		}
 	})
 }
