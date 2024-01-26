@@ -18,13 +18,30 @@ The chatbot clearly demonstrates the use of the API to send text messages, files
 
 ## Setting up the environment for running the chatbot
 
-To run the project you will need any IDE.
-Open your code editor and create a new project from source control. To do this, click `file - new - Project from Version Control System`.
-In the window that opens, enter the project address:
+To run the chatbot, you need to install the Golang environment. Download the latest release suitable for your operating system from [official website](https://go.dev/dl/). Follow the default settings and complete the environment installation.
 
+After completion, you need to check whether the environment was deployed correctly. To do this, open a command line (for example, cmd or bash) and enter the query:
 ```
-https://github.com/green-api/whatsapp-demo-chatbot-go.git
+go version
 ```
+To work correctly, the response to the entered request must be a version of Go no lower than:
+```
+    go version go1.19
+```
+
+Download and unzip the [zip-archive](https://github.com/green-api/whatsapp-demo-chatbot-golang) of the project or clone it with the version control system command:
+
+<details>
+<summary>How to install Git version control?</summary>
+
+Download and install the Git version control system appropriate for your operating system from [official website](https://git-scm.com/downloads).
+ 
+</details>
+```
+git clone https://github.com/green-api/whatsapp-demo-chatbot-golang
+```
+
+Open the project in any IDE.
 
 The environment for launching the chatbot is ready, now you need to configure and launch the chatbot on your Whatsapp account.
 
@@ -32,23 +49,46 @@ The environment for launching the chatbot is ready, now you need to configure an
 
 In order to set up a chatbot on your Whatsapp account, you need to go to [your personal account](https://console.greenapi.com/) and register. For new users, [instructions](https://greenapi.com/en/docs/before-start/) are provided for setting up an account and obtaining the parameters necessary for the chatbot to work, namely:
 ```
-idInstance
-apiTokenInstance
+    idInstance
+    apiTokenInstance
 ```
 
-Don't forget to enable all notifications in your instance settings.
-After receiving these parameters, find the class [`main.go`](main.go) and enter `idInstance` and `apiTokenInstance` into the `NewBot()` method signature.
+Don't forget to enable all notifications in your instance settings, so that the chatbot can immediately start receiving messages.
+After receiving these parameters, find the class [`main.go`](main.go) and enter `idInstance` and `apiTokenInstance` into the constant values.
 Data initialization is necessary to link the bot with your Whatsapp account:
 
-```go
-bot := chatbot.NewBot("{INSTANCE}", "{TOKEN}")
+```
+    const (
+        idInstance       = "{INSTANCE}"
+        apiTokenInstance = "{TOKEN}"
+    )
 ```
 
 You can then run the program by clicking start in the IDE interface or entering the following query on the command line:
 ```
 go run main.go
 ```
-The bot must be running.
+This request will start the chatbot. The process begins with chatbot initialization, which includes changing the settings of the associated instance.
+
+The library [whatsapp-chatbot-golang](https://github.com/green-api/whatsapp-chatbot-golang) contains a mechanism for changing instance settings using the [SetSettings](https://green-api.com/en/docs/api/account/SetSettings/) method, which is launched when the chatbot is turned on.
+
+All settings for receiving notifications are disabled by default; the chatbot will enable the following settings:
+```
+     "incomingWebhook": "yes",
+     "outgoingMessageWebhook": "yes",
+     "outgoingAPIMessageWebhook": "yes",
+```
+which are responsible for receiving notifications about incoming and outgoing messages.
+
+The process of changing settings takes several minutes, during which time the instance will be unavailable. Messages sent to the chatbot during this time will not be processed.
+
+After the settings are applied, notifications about previously received incoming messages will be deleted. This process is also written in the library [whatsapp-chatbot-golang](https://github.com/green-api/whatsapp-chatbot-golang) and starts automatically after changing the settings.
+
+This is necessary so that the chatbot does not start processing messages from old chats.
+
+After changing the settings and deleting incoming notifications, the chatbot will begin to respond to messages as standard. In total, this process takes no more than 5 minutes.
+
+To stop the chatbot, use the keyboard shortcut `Ctrl + C` in the command line.
 
 ## Setting up a chatbot
 
@@ -123,9 +163,24 @@ The main file of the chatbot is [`main.go`](main.go), it contains the `main` fun
 
 ```go
 func main() {
-     bot := chatbot.NewBot("{INSTANCE}", "{TOKEN}") //Initialize the bot with INSTANCE and TOKEN parameters
+    const (
+		// idInstance = '1101123456'
+		// apiTokenInstance = 'abcdefghjklmn1234567890oprstuwxyz'
+		idInstance       = "{INSTANCE}"
+		apiTokenInstance = "{TOKEN}"
+	)
 
-     bot.SetStartScene(scenes.StartScene{}) //Set the bot's starting scene
+    bot := chatbot.NewBot(idInstance, apiTokenInstance) //Initialize the bot with INSTANCE and TOKEN parameters from constants
+
+    if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{      //Setting instance settings
+ 		"incomingWebhook":           "yes",
+ 		"outgoingMessageWebhook":    "yes",
+ 		"outgoingAPIMessageWebhook": "yes",
+ 	}); err != nil {
+ 		log.Fatalln(err)
+ 	}   
+
+    bot.SetStartScene(scenes.StartScene{}) //Set the bot's starting scene
 
      bot.StartReceivingNotifications() //Start the bot
 }
@@ -153,7 +208,7 @@ As the chatbot indicates in its responses, all messages are sent via the API. Do
 
 As for receiving messages, messages are read through the HTTP API. Documentation on methods for receiving messages can be found at [greenapi.com/en/docs/api/receiving/technology-http-api](https://greenapi.com/en/docs/api/receiving/technology-http-api/).
 
-The chatbot uses the library [whatsapp-chatbot-go](https://github.com/green-api/whatsapp-chatbot-golang), where methods for sending and receiving messages are already integrated, so messages are read automatically and sending regular text messages is simplified .
+The chatbot uses the library [whatsapp-chatbot-golang](https://github.com/green-api/whatsapp-chatbot-golang), where methods for sending and receiving messages are already integrated, so messages are read automatically and sending regular text messages is simplified .
 
 For example, a chatbot automatically sends a message to the contact from whom it received the message:
 ```go
