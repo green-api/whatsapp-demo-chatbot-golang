@@ -13,22 +13,26 @@ func GetString(keys []string) string {
 		if stringValue, ok := strings[keys[i]].(string); ok {
 			return stringValue
 		} else {
-			strings = strings[keys[i]].(map[interface{}]interface{})
+			if stringsRaw, ok := strings[keys[i]].(map[interface{}]interface{}); ok {
+				strings = stringsRaw
+			} else {
+				panic("failed to read strings.yaml: " + keys[i] + " is nil")
+			}
 		}
 	}
 	return ""
 }
 
 func getStrings() (map[interface{}]interface{}, error) {
-	fileContent, err := os.ReadFile("strings.yml")
+	fileContent, err := os.ReadFile("strings.yaml")
 	if err != nil {
-		return map[interface{}]interface{}{}, fmt.Errorf("failed to read strings.yml: %v", err)
+		return map[interface{}]interface{}{}, fmt.Errorf("failed to read strings.yaml: %v", err)
 	}
 
 	var stringsData map[interface{}]interface{}
 	err = yaml.Unmarshal(fileContent, &stringsData)
 	if err != nil {
-		return map[interface{}]interface{}{}, fmt.Errorf("failed to unmarshal strings.yml: %v", err)
+		return map[interface{}]interface{}{}, fmt.Errorf("failed to unmarshal strings.yaml: %v", err)
 	}
 
 	return stringsData, nil

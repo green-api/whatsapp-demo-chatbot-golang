@@ -3,18 +3,14 @@ package main
 import (
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/scenes"
+	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 	"log"
 )
 
 func main() {
-	const (
-		// idInstance = '1101123456'
-		// apiTokenInstance = 'abcdefghjklmn1234567890oprstuwxyz'
-		idInstance       = "{INSTANCE}"
-		apiTokenInstance = "{TOKEN}"
-	)
+	cloudConfig := util.GetConfig()
 
-	bot := chatbot.NewBot(idInstance, apiTokenInstance)
+	bot := chatbot.NewBot(cloudConfig.InstanceId, cloudConfig.Token)
 
 	if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
 		"incomingWebhook":           "yes",
