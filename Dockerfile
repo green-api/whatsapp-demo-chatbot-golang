@@ -24,5 +24,6 @@ RUN --mount=type=cache,target=/var/cache/apk \
 
 COPY --from=build /bin/server /bin/
 COPY strings.yaml /strings.yaml
+COPY assets /assets
 
 ENTRYPOINT [ "/bin/server" ]
