@@ -22,11 +22,11 @@ To run the chatbot, you need to install the Golang environment. Download the lat
 
 After completion, you need to check whether the environment was deployed correctly. To do this, open a command line (for example, cmd or bash) and enter the query:
 ```
-go version
+    go version
 ```
 To work correctly, the response to the entered request must be a version of Go no lower than:
 ```
-    go version go1.19
+    go version go 1.19
 ```
 
 Download and unzip the [zip-archive](https://github.com/green-api/whatsapp-demo-chatbot-golang) of the project or clone it with the version control system command:
@@ -35,10 +35,10 @@ Download and unzip the [zip-archive](https://github.com/green-api/whatsapp-demo-
 <summary>How to install Git version control?</summary>
 
 Download and install the Git version control system appropriate for your operating system from [official website](https://git-scm.com/downloads).
- 
 </details>
+
 ```
-git clone https://github.com/green-api/whatsapp-demo-chatbot-golang
+    git clone https://github.com/green-api/whatsapp-demo-chatbot-golang
 ```
 
 Open the project in any IDE.
@@ -66,7 +66,7 @@ Data initialization is necessary to link the bot with your Whatsapp account:
 
 You can then run the program by clicking start in the IDE interface or entering the following query on the command line:
 ```
-go run main.go
+    go run main.go
 ```
 This request will start the chatbot. The process begins with chatbot initialization, which includes changing the settings of the associated instance.
 
