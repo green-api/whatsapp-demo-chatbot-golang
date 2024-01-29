@@ -13,6 +13,8 @@ type EndpointsScene struct {
 }
 
 func (s EndpointsScene) Start(bot *chatbot.Bot) {
+	cloudConfig := util.GetConfig()
+
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
 		if !util.IsSessionExpired(message) {
 			lang := message.GetStateData()["lang"].(string)
@@ -31,13 +33,13 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			case "2":
 				message.AnswerWithUrlFile(
-					"https://images.rawpixel.com/image_png_1100/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTExL3Jhd3BpeGVsb2ZmaWNlMTlfcGhvdG9fb2ZfY29yZ2lzX2luX2NocmlzdG1hc19zd2VhdGVyX2luX2FfcGFydF80YWM1ODk3Zi1mZDMwLTRhYTItYWM5NS05YjY3Yjg1MTFjZmUucG5n.png",
+					cloudConfig.Link1,
 					"corgi.png",
 					util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "3":
 				message.AnswerWithUrlFile(
-					"https://images.rawpixel.com/image_png_1100/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTExL3Jhd3BpeGVsb2ZmaWNlMTlfcGhvdG9fb2ZfY29yZ2lzX2luX2NocmlzdG1hc19zd2VhdGVyX2luX2FfcGFydF80YWM1ODk3Zi1mZDMwLTRhYTItYWM5NS05YjY3Yjg1MTFjZmUucG5n.png",
+					cloudConfig.Link2,
 					"corgi.jpg",
 					util.GetString([]string{"send_image_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 

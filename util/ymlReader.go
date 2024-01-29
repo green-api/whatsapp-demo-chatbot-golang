@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v2"
 	"os"
 )
@@ -24,15 +23,15 @@ func GetString(keys []string) string {
 }
 
 func getStrings() (map[interface{}]interface{}, error) {
-	fileContent, err := os.ReadFile("strings.yaml")
+	fileContent, err := os.ReadFile("/strings.yaml")
 	if err != nil {
-		return map[interface{}]interface{}{}, fmt.Errorf("failed to read strings.yaml: %v", err)
+		panic("Not found strings.yaml: " + err.Error())
 	}
 
 	var stringsData map[interface{}]interface{}
 	err = yaml.Unmarshal(fileContent, &stringsData)
 	if err != nil {
-		return map[interface{}]interface{}{}, fmt.Errorf("failed to unmarshal strings.yaml: %v", err)
+		panic("failed to unmarshal strings.yaml: " + err.Error())
 	}
 
 	return stringsData, nil

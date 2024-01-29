@@ -23,5 +23,6 @@ RUN --mount=type=cache,target=/var/cache/apk \
         update-ca-certificates
 
 COPY --from=build /bin/server /bin/
+COPY strings.yaml /strings.yaml
 
 ENTRYPOINT [ "/bin/server" ]
