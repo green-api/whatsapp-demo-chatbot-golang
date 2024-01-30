@@ -21,7 +21,7 @@ func GetConfig() ApplicationConfig {
 
 	client, err := config.NewClient(
 		os.Getenv("SPRING_CLOUD_CONFIG_URI"),
-		"sw-chatbot-go-7103",
+		os.Getenv("NAME"),
 		os.Getenv("ACTIVE_PROFILE"))
 	if err != nil {
 		panic(err)
