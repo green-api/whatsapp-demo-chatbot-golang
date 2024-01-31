@@ -32,6 +32,33 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 
 				message.ActivateNextScene(EndpointsScene{})
 
+			case "3":
+				message.UpdateStateData(map[string]interface{}{"lang": "he"})
+				message.AnswerWithText(
+					message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
+						util.GetString([]string{"welcome_message", "he"}) +
+						util.GetString([]string{"menu", "he"}))
+
+				message.ActivateNextScene(EndpointsScene{})
+
+			case "4":
+				message.UpdateStateData(map[string]interface{}{"lang": "es"})
+				message.AnswerWithText(
+					util.GetString([]string{"welcome_message", "es"}) +
+						message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
+						util.GetString([]string{"menu", "es"}))
+
+				message.ActivateNextScene(EndpointsScene{})
+
+			case "5":
+				message.UpdateStateData(map[string]interface{}{"lang": "ar"})
+				message.AnswerWithText(
+					util.GetString([]string{"welcome_message", "ar"}) +
+						message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
+						util.GetString([]string{"menu", "ar"}))
+
+				message.ActivateNextScene(EndpointsScene{})
+
 			default:
 				message.AnswerWithText(
 					util.GetString([]string{"specify_language"}))

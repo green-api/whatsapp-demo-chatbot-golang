@@ -44,14 +44,13 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 					util.GetString([]string{"send_image_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "4":
-				message.AnswerWithUploadFile(
-					"assets/Audio_for_bot.mp3",
-					util.GetString([]string{"send_audio_message", lang})+util.GetString([]string{"links", lang, "send_upload_documentation"}))
+				message.AnswerWithText(util.GetString([]string{"send_audio_message", lang}) + util.GetString([]string{"links", lang, "send_file_documentation"}))
+				message.AnswerWithUploadFile("assets/Audio_for_bot.mp3", "")
 
 			case "5":
 				message.AnswerWithUploadFile(
 					"assets/Video_for_bot.mp4",
-					util.GetString([]string{"send_video_message", lang})+util.GetString([]string{"links", lang, "send_upload_documentation"}))
+					util.GetString([]string{"send_video_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "6":
 				message.AnswerWithText(util.GetString([]string{"send_contact_message", lang}) + util.GetString([]string{"links", lang, "send_contact_documentation"}))
@@ -62,32 +61,32 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				message.AnswerWithLocation("", "", 35.888171, 14.440230)
 
 			case "8":
-				message.AnswerWithText(util.GetString([]string{"send_poll_message", lang}))
-				message.AnswerWithPoll(util.GetString([]string{"poll_name", lang}), false,
+				message.AnswerWithText(util.GetString([]string{"send_poll_message", lang}) + util.GetString([]string{"links", lang, "send_poll_documentation"}))
+				message.AnswerWithPoll(util.GetString([]string{"poll_question", lang}), false,
 					[]map[string]interface{}{
-						{"optionName": util.GetString([]string{"poll_option", lang, "o1"})},
-						{"optionName": util.GetString([]string{"poll_option", lang, "o2"})},
-						{"optionName": util.GetString([]string{"poll_option", lang, "o3"})},
+						{"optionName": util.GetString([]string{"poll_option_1", lang})},
+						{"optionName": util.GetString([]string{"poll_option_2", lang})},
+						{"optionName": util.GetString([]string{"poll_option_3", lang})},
 					})
 
 			case "9":
-				message.AnswerWithText(util.GetString([]string{"send_avatar_message", lang, "avatar"}))
+				message.AnswerWithText(util.GetString([]string{"get_avatar_message", lang}) + util.GetString([]string{"links", lang, "get_avatar_documentation"}))
 				avatar, _ := message.GreenAPI.Methods().Service().GetAvatar(chatId)
 
 				if avatar["urlAvatar"] != nil {
 					message.AnswerWithUrlFile(
 						avatar["urlAvatar"].(string),
 						"avatar",
-						util.GetString([]string{"send_avatar_message", lang, "avatar_exist"}))
+						util.GetString([]string{"avatar_found", lang}))
 				} else {
-					message.AnswerWithText(util.GetString([]string{"send_avatar_message", lang, "avatar_not_exist"}))
+					message.AnswerWithText(util.GetString([]string{"avatar_not_found", lang}))
 				}
 
 			case "10":
-				message.AnswerWithText(util.GetString([]string{"send_link_message", lang, "with_preview"}))
+				message.AnswerWithText(util.GetString([]string{"send_link_message_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}))
 				message.GreenAPI.Methods().Sending().SendMessage(map[string]interface{}{
 					"chatId":          chatId,
-					"message":         util.GetString([]string{"send_link_message", lang, "without_preview"}),
+					"message":         util.GetString([]string{"send_link_message_no_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}),
 					"quotedMessageId": messageId,
 					"linkPreview":     false,
 				})
@@ -96,12 +95,29 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				group, _ := message.GreenAPI.Methods().Groups().CreateGroup(
 					util.GetString([]string{"group_name", lang}),
 					[]string{chatId})
-				message.GreenAPI.Methods().Groups().SetGroupPicture(
-					"assets/Group_avatar_bot.png",
+
+				resp, _ := message.GreenAPI.Methods().Groups().SetGroupPicture(
+					"assets/Group_avatar.jpg",
 					group["chatId"].(string))
+
+				if resp["setGroupPicture"].(bool) {
+					message.GreenAPI.Methods().Sending().SendMessage(map[string]interface{}{
+						"chatId":  group["chatId"].(string),
+						"message": util.GetString([]string{"send_group_message", lang}) + util.GetString([]string{"links", lang, "groups_documentation"}),
+					})
+				} else {
+					message.GreenAPI.Methods().Sending().SendMessage(map[string]interface{}{
+						"chatId":  group["chatId"].(string),
+						"message": util.GetString([]string{"send_group_message_set_picture_false", lang}) + util.GetString([]string{"links", lang, "groups_documentation"}),
+					})
+				}
+
+			case "12":
 				message.GreenAPI.Methods().Sending().SendMessage(map[string]interface{}{
-					"chatId":  group["chatId"].(string),
-					"message": util.GetString([]string{"create_group_message", lang}),
+					"chatId":          chatId,
+					"message":         util.GetString([]string{"send_quoted_message", lang}) + util.GetString([]string{"links", lang, "send_quoted_message_documentation"}),
+					"quotedMessageId": messageId,
+					"linkPreview":     false,
 				})
 
 			case "стоп", "Стоп", "stop", "Stop":
@@ -132,11 +148,11 @@ func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, chatId 
 
 	var messageText string
 	if isYes {
-		messageText = util.GetString([]string{"poll_response", lang, "if_yes"})
+		messageText = util.GetString([]string{"poll_answer_1", lang})
 	} else if isNo {
-		messageText = util.GetString([]string{"poll_response", lang, "if_no"})
+		messageText = util.GetString([]string{"poll_answer_2", lang})
 	} else if isNothing {
-		messageText = util.GetString([]string{"poll_response", lang, "if_nothing"})
+		messageText = util.GetString([]string{"poll_answer_3", lang})
 	}
 
 	message.Methods().Sending().SendMessage(map[string]interface{}{

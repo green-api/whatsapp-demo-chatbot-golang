@@ -23,7 +23,7 @@ func GetString(keys []string) string {
 }
 
 func getStrings() (map[interface{}]interface{}, error) {
-	fileContent, err := os.ReadFile("/strings.yaml")
+	fileContent, err := os.ReadFile("strings.yaml")
 	if err != nil {
 		panic("Not found strings.yaml: " + err.Error())
 	}

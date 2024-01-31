@@ -4,12 +4,17 @@ import (
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/scenes"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
+	"github.com/joho/godotenv"
 	"log"
 )
 
 func main() {
-	cloudConfig := util.GetConfig()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
+	cloudConfig := util.GetConfig()
 	bot := chatbot.NewBot(cloudConfig.InstanceId, cloudConfig.Token)
 
 	if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
