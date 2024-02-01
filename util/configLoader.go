@@ -1,38 +1,63 @@
 package util
 
 import (
-	"fmt"
-	envFile "github.com/joho/godotenv"
-	config "github.com/realbucksavage/spring-config-client-go/v2"
+	"github.com/green-api/whatsapp-demo-chatbot-golang/config"
+	"github.com/sirupsen/logrus"
 	"os"
+	"strings"
+	"time"
 )
 
-type ApplicationConfig struct {
-	InstanceId string `json:"sapi_user_id" yaml:"sapi_user_id"`
-	Token      string `json:"sapi_user_token" yaml:"sapi_user_token"`
-	Link1      string `json:"slink_1" yaml:"slink_1"`
-	Link2      string `json:"slink_2" yaml:"slink_2"`
+type Formatter struct {
+	Location  *time.Location
+	Formatter *logrus.JSONFormatter
 }
 
-func GetConfig() ApplicationConfig {
-	if err := envFile.Load(); err != nil {
-		fmt.Printf("Error loading .env file: %s\n", err)
-	}
+func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
+	entry.Time = entry.Time.In(f.Location)
 
-	client, err := config.NewClient(
-		os.Getenv("SPRING_CLOUD_CONFIG_URI"),
-		os.Getenv("NAME"),
-		os.Getenv("ACTIVE_PROFILE"))
+	return f.Formatter.Format(entry)
+}
+
+func GetConfig() config.Data {
+	log := logrus.New()
+
+	location, err := time.LoadLocation("Europe/Moscow")
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
-	var appConfig ApplicationConfig
-	err = client.Decode(&appConfig)
+	log.SetLevel(logrus.DebugLevel)
+	log.SetFormatter(&Formatter{
+		Location: location,
+		Formatter: &logrus.JSONFormatter{
+			TimestampFormat: time.DateTime,
+			FieldMap: logrus.FieldMap{
+				logrus.FieldKeyMsg:  "message",
+				logrus.FieldKeyTime: "timestamp",
+			},
+		},
+	})
 
+	profile := config.ParseProfile(os.Getenv("ACTIVE_PROFILE"))
+
+	cloudConfig := config.NewCloudConfig(log)
+
+	log.Infoln("Loading cloud config")
+	err = cloudConfig.Load(
+		os.Getenv("NAME"), profile.Pool, strings.Join(
+			[]string{profile.Pool, profile.Server}, "",
+		),
+	)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
-	return appConfig
+	log.Infoln("Getting cloud config")
+	data, err := cloudConfig.Get(os.Getenv("NAME") + "-" + profile.Pool)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return *data
 }

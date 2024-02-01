@@ -5,8 +5,21 @@ import (
 	"github.com/green-api/whatsapp-demo-chatbot-golang/scenes"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"log"
+	"time"
 )
+
+type Formatter struct {
+	Location  *time.Location
+	Formatter *logrus.JSONFormatter
+}
+
+func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
+	entry.Time = entry.Time.In(f.Location)
+
+	return f.Formatter.Format(entry)
+}
 
 func main() {
 	err := godotenv.Load()
@@ -14,8 +27,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	cloudConfig := util.GetConfig()
-	bot := chatbot.NewBot(cloudConfig.InstanceId, cloudConfig.Token)
+	data := util.GetConfig()
+	bot := chatbot.NewBot(data.InstanceId, data.Token)
 
 	if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
 		"incomingWebhook":           "yes",
