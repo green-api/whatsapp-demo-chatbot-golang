@@ -28,6 +28,7 @@ func main() {
 	}
 
 	data := util.GetConfig()
+
 	bot := chatbot.NewBot(data.InstanceId, data.Token)
 
 	if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{

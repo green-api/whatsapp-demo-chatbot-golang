@@ -18,7 +18,7 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 				message.UpdateStateData(map[string]interface{}{"lang": "eng"})
 				message.AnswerWithText(
 					util.GetString([]string{"welcome_message", "eng"}) +
-						message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
+						message.Body["senderData"].(map[string]interface{})["senderName"].(string) + "\n" +
 						util.GetString([]string{"menu", "eng"}))
 
 				message.ActivateNextScene(EndpointsScene{})
@@ -33,6 +33,15 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 				message.ActivateNextScene(EndpointsScene{})
 
 			case "3":
+				message.UpdateStateData(map[string]interface{}{"lang": "kz"})
+				message.AnswerWithText(
+					util.GetString([]string{"welcome_message", "kz"}) +
+						message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
+						util.GetString([]string{"menu", "kz"}))
+
+				message.ActivateNextScene(EndpointsScene{})
+
+			case "4":
 				message.UpdateStateData(map[string]interface{}{"lang": "he"})
 				message.AnswerWithText(
 					message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
@@ -41,7 +50,7 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 
 				message.ActivateNextScene(EndpointsScene{})
 
-			case "4":
+			case "5":
 				message.UpdateStateData(map[string]interface{}{"lang": "es"})
 				message.AnswerWithText(
 					util.GetString([]string{"welcome_message", "es"}) +
@@ -50,7 +59,7 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 
 				message.ActivateNextScene(EndpointsScene{})
 
-			case "5":
+			case "6":
 				message.UpdateStateData(map[string]interface{}{"lang": "ar"})
 				message.AnswerWithText(
 					util.GetString([]string{"welcome_message", "ar"}) +
