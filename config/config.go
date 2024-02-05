@@ -18,6 +18,8 @@ type Data struct {
 	Token      string `json:"sapi_user_token" yaml:"sapi_user_token"`
 	Link1      string `json:"slink_1" yaml:"slink_1"`
 	Link2      string `json:"slink_2" yaml:"slink_2"`
+	Link3      string `json:"slink_3" yaml:"slink_3"`
+	Link4      string `json:"slink_4" yaml:"slink_4"`
 }
 
 type CloudConfig struct {

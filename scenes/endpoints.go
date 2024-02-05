@@ -45,11 +45,10 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			case "4":
 				message.AnswerWithText(util.GetString([]string{"send_audio_message", lang}) + util.GetString([]string{"links", lang, "send_file_documentation"}))
-				message.AnswerWithUploadFile("assets/Audio_for_bot.mp3", "")
+				message.AnswerWithUrlFile(cloudConfig.Link3, "audio.mp3", "")
 
 			case "5":
-				message.AnswerWithUploadFile(
-					"assets/Video_for_bot.mp4",
+				message.AnswerWithUrlFile(cloudConfig.Link4, "video.mp4",
 					util.GetString([]string{"send_video_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "6":
