@@ -45,7 +45,7 @@ func GetConfig() config.Data {
 
 	log.Infoln("Loading cloud config")
 	err = cloudConfig.Load(
-		os.Getenv("NAME"), profile.Pool, strings.Join(
+		"sw-chatbot-go", profile.Pool, strings.Join(
 			[]string{profile.Pool, profile.Server}, "",
 		),
 	)
@@ -54,7 +54,7 @@ func GetConfig() config.Data {
 	}
 
 	log.Infoln("Getting cloud config")
-	data, err := cloudConfig.Get(os.Getenv("NAME") + "-" + profile.Pool)
+	data, err := cloudConfig.Get("sw-chatbot-go-" + profile.Pool)
 	if err != nil {
 		log.Fatalln(err)
 	}
