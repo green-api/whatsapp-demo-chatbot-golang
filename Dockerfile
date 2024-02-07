@@ -15,12 +15,7 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 
 FROM alpine:latest AS final
 
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk --update add \
-        ca-certificates \
-        tzdata \
-        && \
-        update-ca-certificates
+RUN apk --no-cache add ca-certificates tzdata && update-ca-certificates
 
 COPY --from=build /bin/server /bin/
 COPY strings.yaml /strings.yaml
