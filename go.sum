@@ -782,11 +782,9 @@ github.com/googleapis/gax-go/v2 v2.10.0/go.mod h1:4UOEnMCrxsSqQ940WnTiD6qJ63le2e
 github.com/googleapis/gax-go/v2 v2.11.0/go.mod h1:DxmR61SGKkGLa2xigwuZIQpkCI2S5iydzRfb3peWZJI=
 github.com/googleapis/go-type-adapters v1.0.0/go.mod h1:zHW75FOG2aur7gAO2B+MLby+cLsWGBF62rFAi7WjWO4=
 github.com/googleapis/google-cloud-go-testing v0.0.0-20200911160855-bcd43fbb19e8/go.mod h1:dvDLG8qkwmyD9a/MJJN3XJcT3xFxOKAvTZGvuZmac9g=
-github.com/green-api/whatsapp-api-client-golang v0.6.2 h1:jD1ti5YceYIsKlTiZ857NvsPwmnBI7QhqF2BsCNIet0=
-github.com/green-api/whatsapp-api-client-golang v0.6.2/go.mod h1:0/hbO88FzFWZMie53Gm8j2L7h6pMtvLjPyrois7YTQU=
+github.com/green-api/whatsapp-api-client-golang v0.6.3-0.20240204214127-15a9d34bf546 h1:gTyJYSTENPZGtSGyZYmHVarMC9J4IP4QA+vujbwPi+I=
 github.com/green-api/whatsapp-api-client-golang v0.6.3-0.20240204214127-15a9d34bf546/go.mod h1:PruawIYBXbR1CULTa1n9SBZk5uD+/oUCBAkP5FyHhu4=
-github.com/green-api/whatsapp-chatbot-golang v0.0.0 h1:wwonQssXaUxcJORsuSmhE08PZv3xc+C8qrj6SCRqCBU=
-github.com/green-api/whatsapp-chatbot-golang v0.0.0/go.mod h1:ORQpTczJODtv6UiW/KxNAzzpLdaJ/5PVTRCji2hcwOI=
+github.com/green-api/whatsapp-chatbot-golang v0.0.1 h1:bcG/kiDepDBL4ksNYPUqvyD6AscQLaHwCHzJHCR8+fE=
 github.com/green-api/whatsapp-chatbot-golang v0.0.1/go.mod h1:K3Y/MCzkAvDodxo86FB6brOXR2OxfiJaLDszqxifQlk=
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0/go.mod h1:hgWBS7lorOAVIJEQMi4ZsPv9hVvWI6+ch50m39Pf2Ks=

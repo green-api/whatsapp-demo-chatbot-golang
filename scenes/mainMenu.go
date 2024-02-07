@@ -14,11 +14,11 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 			text, _ := message.Text()
 			switch text {
 			case "1":
-				s.sendMainMenu(message, "en")
+				s.sendMainMenu(message, "eng")
 			case "2":
-				s.sendMainMenu(message, "ru")
-			case "3":
 				s.sendMainMenu(message, "kz")
+			case "3":
+				s.sendMainMenu(message, "ru")
 			case "4":
 				s.sendMainMenu(message, "he")
 			case "5":

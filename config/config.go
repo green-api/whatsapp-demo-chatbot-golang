@@ -14,7 +14,7 @@ import (
 )
 
 type Data struct {
-	InstanceId string `json:"user_id" yaml:"user_id"`
+	InstanceId int64  `json:"user_id" yaml:"user_id"`
 	Token      string `json:"api_token_id" yaml:"api_token_id"`
 	Link1      string `json:"link_1" yaml:"link_1"`
 	Link2      string `json:"link_2" yaml:"link_2"`

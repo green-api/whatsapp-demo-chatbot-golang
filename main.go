@@ -6,6 +6,7 @@ import (
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 	"github.com/joho/godotenv"
 	"log"
+	"strconv"
 )
 
 func main() {
@@ -14,9 +15,9 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	data := util.GetConfig()
+	util.GetConfig()
 
-	bot := chatbot.NewBot(data.InstanceId, data.Token)
+	bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
 
 	if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
 		"incomingWebhook":           "yes",

@@ -19,7 +19,9 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return f.Formatter.Format(entry)
 }
 
-func GetConfig() config.Data {
+var CloudConfig config.Data
+
+func GetConfig() {
 	log := logrus.New()
 
 	location, err := time.LoadLocation("Europe/Moscow")
@@ -59,5 +61,5 @@ func GetConfig() config.Data {
 		log.Fatalln(err)
 	}
 
-	return *data
+	CloudConfig = *data
 }

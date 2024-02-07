@@ -13,7 +13,6 @@ type EndpointsScene struct {
 }
 
 func (s EndpointsScene) Start(bot *chatbot.Bot) {
-	cloudConfig := util.GetConfig()
 
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
 		if !util.IsSessionExpired(message) {
@@ -33,22 +32,22 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			case "2":
 				message.AnswerWithUrlFile(
-					cloudConfig.Link1,
+					util.CloudConfig.Link1,
 					"corgi.png",
 					util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "3":
 				message.AnswerWithUrlFile(
-					cloudConfig.Link2,
+					util.CloudConfig.Link2,
 					"corgi.jpg",
 					util.GetString([]string{"send_image_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "4":
 				message.AnswerWithText(util.GetString([]string{"send_audio_message", lang}) + util.GetString([]string{"links", lang, "send_file_documentation"}))
-				message.AnswerWithUrlFile(cloudConfig.Link3, "audio.mp3", "")
+				message.AnswerWithUrlFile(util.CloudConfig.Link3, "audio.mp3", "")
 
 			case "5":
-				message.AnswerWithUrlFile(cloudConfig.Link4, "video.mp4",
+				message.AnswerWithUrlFile(util.CloudConfig.Link4, "video.mp4",
 					util.GetString([]string{"send_video_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "6":
