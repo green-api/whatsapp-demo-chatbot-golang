@@ -11,7 +11,7 @@ ARG TARGETARCH
 
 RUN CGO_ENABLED=0 GOARCH=amd64 go build -o /bin/server .
 
-FROM alpine:1.22.0 AS final
+FROM alpine:3.14 AS final
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk --update add \
