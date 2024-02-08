@@ -33,7 +33,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 			case "2":
 				message.AnswerWithUrlFile(
 					util.CloudConfig.Link1,
-					"corgi.png",
+					"corgi.pdf",
 					util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "3":

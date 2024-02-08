@@ -23,6 +23,7 @@ func main() {
 		"incomingWebhook":           "yes",
 		"outgoingMessageWebhook":    "yes",
 		"outgoingAPIMessageWebhook": "yes",
+		"pollMessageWebhook":        "yes",
 	}); err != nil {
 		log.Fatalln(err)
 	}
