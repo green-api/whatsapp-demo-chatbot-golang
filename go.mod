@@ -1,6 +1,6 @@
 module github.com/green-api/whatsapp-demo-chatbot-golang
 
-go 1.19
+go 1.22.0
 
 require (
 	github.com/Piszmog/cloudconfigclient/v2 v2.1.0
@@ -12,9 +12,12 @@ require (
 
 require (
 	github.com/Piszmog/cfservices v1.4.3 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/green-api/whatsapp-api-client-golang v0.6.3-0.20240204214127-15a9d34bf546 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect

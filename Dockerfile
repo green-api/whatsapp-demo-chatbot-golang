@@ -1,4 +1,5 @@
-ARG GO_VERSION=1.21.6
+ARG GO_VERSION=1.22.0
+
 FROM --platform=linux/amd64 golang:${GO_VERSION} AS build
 WORKDIR /src
 
