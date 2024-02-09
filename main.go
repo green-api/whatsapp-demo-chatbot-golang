@@ -19,13 +19,23 @@ func main() {
 
 	bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
 
+	go func() {
+		select {
+		case err := <-bot.ErrorChannel:
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}()
+
 	if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
-		"incomingWebhook":           "yes",
-		"outgoingMessageWebhook":    "yes",
-		"outgoingAPIMessageWebhook": "yes",
-		"pollMessageWebhook":        "yes",
+		"incomingWebhook":            "yes",
+		"outgoingMessageWebhook":     "yes",
+		"outgoingAPIMessageWebhook":  "yes",
+		"pollMessageWebhook":         "yes",
+		"markIncomingMessagesReaded": "yes",
 	}); err != nil {
-		log.Fatalln(err)
+		bot.ErrorChannel <- err
 	}
 
 	bot.SetStartScene(scenes.StartScene{})

@@ -35,7 +35,7 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 
 func (s MainMenuScene) sendMainMenu(message *chatbot.Notification, lang string) {
 	message.UpdateStateData(map[string]interface{}{"lang": lang})
-	message.AnswerWithText(
+	message.SendText(
 		util.GetString([]string{"welcome_message", lang}) +
 			message.Body["senderData"].(map[string]interface{})["senderName"].(string) + "\n" +
 			util.GetString([]string{"menu", lang}))

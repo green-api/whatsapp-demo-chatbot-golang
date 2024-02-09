@@ -10,7 +10,7 @@ type StartScene struct {
 
 func (s StartScene) Start(bot *chatbot.Bot) {
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
-		message.AnswerWithText(util.GetString([]string{"select_language"}))
+		message.SendText(util.GetString([]string{"select_language"}))
 
 		message.ActivateNextScene(MainMenuScene{})
 	})
