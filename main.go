@@ -5,17 +5,19 @@ import (
 	"github.com/green-api/whatsapp-demo-chatbot-golang/scenes"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 	"github.com/joho/godotenv"
-	"log"
+	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
 func main() {
+	log := logrus.New()
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalln("Error loading .env file")
 	}
 
-	util.GetConfig()
+	util.GetConfig(log)
 
 	bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
 
@@ -23,7 +25,7 @@ func main() {
 		select {
 		case err := <-bot.ErrorChannel:
 			if err != nil {
-				log.Println(err)
+				log.Errorln(err)
 			}
 		}
 	}()

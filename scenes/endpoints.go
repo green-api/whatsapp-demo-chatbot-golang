@@ -19,8 +19,9 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 			lang := message.GetStateData()["lang"].(string)
 			text, _ := message.Text()
 			senderName := message.Body["senderData"].(map[string]interface{})["senderName"].(string)
-			messageId := message.Body["idMessage"].(string)
 			chatId, _ := message.ChatId()
+			senderId, _ := message.Sender()
+			botNumber := message.Body["instanceData"].(map[string]interface{})["wid"].(string)
 
 			if message.Filter(map[string][]string{"messageType": {"pollUpdateMessage"}}) {
 				s.processPollUpdate(message, chatId, lang)
@@ -52,7 +53,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			case "6":
 				message.SendText(util.GetString([]string{"send_contact_message", lang}) + util.GetString([]string{"links", lang, "send_contact_documentation"}))
-				message.SendContact(map[string]interface{}{"firstName": senderName, "phoneContact": strings.ReplaceAll(chatId, "@c.us", "")})
+				message.SendContact(map[string]interface{}{"firstName": senderName, "phoneContact": strings.ReplaceAll(senderId, "@c.us", "")})
 
 			case "7":
 				message.SendText(util.GetString([]string{"send_location_message", lang}) + util.GetString([]string{"links", lang, "send_location_documentation"}))
@@ -69,7 +70,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			case "9":
 				message.SendText(util.GetString([]string{"get_avatar_message", lang}) + util.GetString([]string{"links", lang, "get_avatar_documentation"}))
-				avatar, _ := message.GreenAPI.Methods().Service().GetAvatar(chatId)
+				avatar, _ := message.GreenAPI.Methods().Service().GetAvatar(senderId)
 
 				if avatar["urlAvatar"] != nil {
 					message.SendUrlFile(
@@ -83,40 +84,36 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 			case "10":
 				message.SendText(util.GetString([]string{"send_link_message_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}))
 				_, err := message.GreenAPI.Methods().Sending().SendMessage(map[string]interface{}{
-					"chatId":          chatId,
-					"message":         util.GetString([]string{"send_link_message_no_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}),
-					"quotedMessageId": messageId,
-					"linkPreview":     false,
+					"chatId":      chatId,
+					"message":     util.GetString([]string{"send_link_message_no_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}),
+					"linkPreview": false,
 				})
 				if err != nil {
 					*message.ErrorChannel <- err
 				}
 
 			case "11":
-				group, err := message.GreenAPI.Methods().Groups().CreateGroup(
-					util.GetString([]string{"group_name", lang}),
-					[]string{chatId})
-				if err != nil {
-					*message.ErrorChannel <- err
-				}
-
-				resp, err := message.GreenAPI.Methods().Groups().SetGroupPicture(
-					"assets/Group_avatar.jpg",
-					group["chatId"].(string))
-				if err != nil {
-					*message.ErrorChannel <- err
-				}
-
-				if resp["setGroupPicture"].(bool) {
-					message.SendText(util.GetString([]string{"send_group_message", lang}) + util.GetString([]string{"links", lang, "groups_documentation"}))
-				} else {
-					message.SendText(util.GetString([]string{"send_group_message_set_picture_false", lang}) + util.GetString([]string{"links", lang, "groups_documentation"}))
-				}
-
+				message.SendText(util.GetString([]string{"add_to_contact", lang}))
+				message.SendContact(map[string]interface{}{"firstName": util.GetString([]string{"bot_name", lang}), "phoneContact": strings.ReplaceAll(botNumber, "@c.us", "")})
+				message.ActivateNextScene(CreateGroupScene{})
 			case "12":
 				message.AnswerWithText(util.GetString([]string{"send_quoted_message", lang}) + util.GetString([]string{"links", lang, "send_quoted_message_documentation"}))
 
-			case "стоп", "Стоп", "stop", "Stop":
+			case "13":
+				message.SendUploadFile("assets/about_go.jpg",
+					util.GetString([]string{"about_go_chatbot", lang})+
+						util.GetString([]string{"link_to_docs", lang})+
+						util.GetString([]string{"links", lang, "chatbot_documentation"})+
+						util.GetString([]string{"link_to_source_code", lang})+
+						util.GetString([]string{"links", lang, "chatbot_source_code"})+
+						util.GetString([]string{"link_to_green_api", lang})+
+						util.GetString([]string{"links", lang, "greenapi_website"})+
+						util.GetString([]string{"link_to_console", lang})+
+						util.GetString([]string{"links", lang, "greenapi_console"})+
+						util.GetString([]string{"link_to_youtube", lang})+
+						util.GetString([]string{"links", lang, "youtube_channel"}))
+
+			case "стоп", "Стоп", "stop", "Stop", "0":
 				message.SendText(util.GetString([]string{"stop_message", lang}) + senderName)
 				message.ActivateNextScene(StartScene{})
 

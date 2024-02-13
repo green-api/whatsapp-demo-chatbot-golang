@@ -8,22 +8,9 @@ import (
 	"time"
 )
 
-type Formatter struct {
-	Location  *time.Location
-	Formatter *logrus.JSONFormatter
-}
-
-func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
-	entry.Time = entry.Time.In(f.Location)
-
-	return f.Formatter.Format(entry)
-}
-
 var CloudConfig config.Data
 
-func GetConfig() {
-	log := logrus.New()
-
+func GetConfig(log *logrus.Logger) {
 	location, err := time.LoadLocation("Europe/Moscow")
 	if err != nil {
 		log.Fatalln(err)
