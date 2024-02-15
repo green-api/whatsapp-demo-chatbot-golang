@@ -28,6 +28,9 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 			default:
 				message.SendText(util.GetString([]string{"specify_language"}))
 			}
+		} else {
+			message.ActivateNextScene(MainMenuScene{})
+			message.SendText(util.GetString([]string{"select_language"}))
 		}
 	})
 }

@@ -128,6 +128,9 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 			default:
 				message.SendText(util.GetString([]string{"not_recognized_message", lang}))
 			}
+		} else {
+			message.ActivateNextScene(MainMenuScene{})
+			message.SendText(util.GetString([]string{"select_language"}))
 		}
 	})
 }

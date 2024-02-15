@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -10,16 +11,21 @@ import (
 	"strings"
 
 	"github.com/Piszmog/cloudconfigclient/v2"
-	"github.com/sirupsen/logrus"
 )
 
 type Data struct {
-	InstanceId int64  `json:"user_id" yaml:"user_id"`
-	Token      string `json:"api_token_id" yaml:"api_token_id"`
-	Link1      string `json:"link_1" yaml:"link_1"`
-	Link2      string `json:"link_2" yaml:"link_2"`
-	Link3      string `json:"link_3" yaml:"link_3"`
-	Link4      string `json:"link_4" yaml:"link_4"`
+	Project     string `json:"project" yaml:"project"`
+	Service     string `json:"service" yaml:"service"`
+	System      string `json:"system" yaml:"system"`
+	Container   string `json:"container" yaml:"container"`
+	ElasticUrl  string `json:"elastic_url" yaml:"elastic_url"`
+	ElasticHost string `json:"elastic_host" yaml:"elastic_host"`
+	InstanceId  int64  `json:"user_id" yaml:"user_id"`
+	Token       string `json:"api_token_id" yaml:"api_token_id"`
+	Link1       string `json:"link_1" yaml:"link_1"`
+	Link2       string `json:"link_2" yaml:"link_2"`
+	Link3       string `json:"link_3" yaml:"link_3"`
+	Link4       string `json:"link_4" yaml:"link_4"`
 }
 
 type CloudConfig struct {
@@ -27,7 +33,7 @@ type CloudConfig struct {
 	data   map[string]Data
 }
 
-func NewCloudConfig(log *logrus.Logger) *CloudConfig {
+func NewCloudConfig() *CloudConfig {
 	cc := CloudConfig{
 		data: make(map[string]Data),
 	}

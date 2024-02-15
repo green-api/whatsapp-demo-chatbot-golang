@@ -5,27 +5,28 @@ import (
 	"github.com/green-api/whatsapp-demo-chatbot-golang/scenes"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
+	"log"
 )
 
 func main() {
-	log := logrus.New()
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalln("Error loading .env file")
 	}
 
-	util.GetConfig(log)
+	util.GetConfig()
 
 	//bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
 	bot := chatbot.NewBot("1101848919", "fe0453b47e1b403c8d88ce881291ea002292b3037ae045bcb2")
+
+	elcLog := util.GetLogger()
+	elcLog.WithField("marker", "Bot is inited").Debugln("Configuration data and environment loaded successfully")
 
 	go func() {
 		select {
 		case err := <-bot.ErrorChannel:
 			if err != nil {
-				log.Errorln(err)
+				elcLog.WithField("marker", "bot throws an exception").Errorln(err)
 			}
 		}
 	}()
@@ -40,9 +41,10 @@ func main() {
 	if err != nil {
 		bot.ErrorChannel <- err
 	}
-	log.Println(settings)
+	elcLog.WithField("marker", "settings updated by bot").Debugln(settings)
 
 	bot.SetStartScene(scenes.StartScene{})
 
+	elcLog.WithField("marker", "StartReceivingNotifications").Debugln("starting polling webhook queue")
 	bot.StartReceivingNotifications()
 }

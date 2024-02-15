@@ -5,7 +5,7 @@ services:
     hostname: chatbot-golang
     container_name: chatbot-golang
     restart: unless-stopped
-    image: kocherovv/whatsapp-demo-chatbot-golang:v0.0.1
+    image: whatsapp-demo-chatbot-golang:v0.0.1
     labels:
       version: 0.0.1
     
