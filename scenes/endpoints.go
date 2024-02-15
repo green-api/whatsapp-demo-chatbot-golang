@@ -60,7 +60,11 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				message.SendLocation("", "", 35.888171, 14.440230)
 
 			case "8":
-				message.SendText(util.GetString([]string{"send_poll_message", lang}) + util.GetString([]string{"links", lang, "send_poll_documentation"}))
+				message.SendText(util.GetString([]string{"send_poll_message", lang}) +
+					util.GetString([]string{"links", lang, "send_poll_as_buttons"}) +
+					util.GetString([]string{"send_poll_message_1", lang}) +
+					util.GetString([]string{"links", lang, "send_poll_documentation"}))
+
 				message.SendPoll(util.GetString([]string{"poll_question", lang}), false,
 					[]map[string]interface{}{
 						{"optionName": util.GetString([]string{"poll_option_1", lang})},

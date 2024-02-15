@@ -34,11 +34,22 @@ func (s CreateGroupScene) Start(bot *chatbot.Bot) {
 			}
 
 			if resp["setGroupPicture"].(bool) {
-				message.SendText(util.GetString([]string{"send_group_message", lang}) + util.GetString([]string{"links", lang, "groups_documentation"}))
+				_, err := message.GreenAPI.Methods().Sending().SendMessage(map[string]interface{}{
+					"chatId":  group["chatId"].(string),
+					"message": util.GetString([]string{"send_group_message", lang}) + util.GetString([]string{"links", lang, "groups_documentation"})})
+				if err != nil {
+					bot.ErrorChannel <- err
+				}
 			} else {
-				message.SendText(util.GetString([]string{"send_group_message_set_picture_false", lang}) + util.GetString([]string{"links", lang, "groups_documentation"}))
+				_, err := message.GreenAPI.Methods().Sending().SendMessage(map[string]interface{}{
+					"chatId":  group["chatId"].(string),
+					"message": util.GetString([]string{"send_group_message_set_picture_false", lang}) + util.GetString([]string{"links", lang, "groups_documentation"})})
+				if err != nil {
+					bot.ErrorChannel <- err
+				}
 			}
-			message.SendText(util.GetString([]string{"group_created_message", lang}))
+			message.SendText(util.GetString([]string{"group_created_message", lang}) +
+				group["groupInviteLink"].(string))
 			message.ActivateNextScene(EndpointsScene{})
 		case "0":
 			message.SendText(util.GetString([]string{"menu", lang}))

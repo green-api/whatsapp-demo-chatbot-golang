@@ -6,7 +6,6 @@ import (
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
-	"strconv"
 )
 
 func main() {
@@ -19,7 +18,8 @@ func main() {
 
 	util.GetConfig(log)
 
-	bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
+	//bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
+	bot := chatbot.NewBot("1101848919", "fe0453b47e1b403c8d88ce881291ea002292b3037ae045bcb2")
 
 	go func() {
 		select {
@@ -30,15 +30,17 @@ func main() {
 		}
 	}()
 
-	if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
+	settings, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
 		"incomingWebhook":            "yes",
 		"outgoingMessageWebhook":     "yes",
 		"outgoingAPIMessageWebhook":  "yes",
 		"pollMessageWebhook":         "yes",
 		"markIncomingMessagesReaded": "yes",
-	}); err != nil {
+	})
+	if err != nil {
 		bot.ErrorChannel <- err
 	}
+	log.Println(settings)
 
 	bot.SetStartScene(scenes.StartScene{})
 
