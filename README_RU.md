@@ -97,19 +97,19 @@ go run main.go
 Ссылки должны вести на файлы из облачного хранилища или открытого доступа. В файле [`endpoints.go`](scenes/endpoints.go) есть следующий код для отправки файла:
 ```go
 case "2":
-    message.AnswerWithUrlFile(
-        "https://images.rawpixel.com/image_png_1100/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTExL3Jhd3BpeGVsb2ZmaWNlMTlfcGhvdG9fb2ZfY29yZ2lzX2luX2NocmlzdG1hc19zd2VhdGVyX2luX2FfcGFydF80YWM1ODk3Zi1mZDMwLTRhYTItYWM5NS05YjY3Yjg1MTFjZmUucG5n.png",
-        "corgi.png",
-        util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
+    message.SendUrlFile(
+    "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/corgi.pdf",
+    "corgi.pdf",
+    util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 ```
 Добавьте ссылку на файл любого расширения в качестве первого параметра метода `answerWithUrlFile` и задайте имя файлу во втором параметре. Имя файла должно содержать расширение, например "somefile.pdf".
 Данная строка после изменения будет в следующем формате:
 ```go
 case "2":
-    message.AnswerWithUrlFile(
-        "https://...somefile.pdf",
-        "somefile.pdf",
-        util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
+    message.SendUrlFile(
+    "https://...somefile.pdf",
+    "corgi.pdf",
+    util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 ```
 
 Все изменения должны быть сохранены, после чего можно запускать чатбот. Для запуска чатбота вернитесь к [пункту 2](#запуск-чатбота).
@@ -172,10 +172,21 @@ func main() {
 
     bot := chatbot.NewBot(idInstance, apiTokenInstance)      //Инициализация бота с параметрами INSTANCE и TOKEN из констант
 
+    go func() {                                 //Обработчик ошибок
+        select {
+		    case err := <-bot.ErrorChannel:
+            if err != nil {
+                log.Println(err)
+            }
+        }
+    }()
+	
     if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{      //Установка настроек инстанса
  		"incomingWebhook":           "yes",
  		"outgoingMessageWebhook":    "yes",
  		"outgoingAPIMessageWebhook": "yes",
+        "pollMessageWebhook":         "yes",
+        "markIncomingMessagesReaded": "yes",
  	}); err != nil {
  		log.Fatalln(err)
  	}   
@@ -192,11 +203,12 @@ func main() {
 
 Например, первая сцена [`start.go`](scenes/start.go) отвечает за приветственное сообщение. Вне зависимости от текста сообщения, бот спрашивает какой язык удобен пользователю и включает следующую сцену, которая отвечает за обработку ответа.
 
-Всего в боте 3 сцены:
+Всего в боте 4 сцены:
 
 - Сцена [`start.go`](scenes/start.go) - отвечает на любое входящее сообщение, отправляет список доступных языков. Запускает сцену `MainMenu`.
 - Сцена [`mainMenu.go`](scenes/mainMenu.go) - обрабатывает выбор пользователя и отправляет текст главного меню на выбранном языке. Запускает сцену `Endpoints`
 - Сцена [`endpoints.go`](scenes/mainMenu.go) - выполняет выбранный пользователем метод и отправляет описание метода на выбранном языке.
+- Сцена [`createGroup.go`](scenes/createGroup.go) - Сцена создает группу, если пользователь сказал, что добавил бота в свои контакты. Если нет, возвращается к сцене «конечные точки».
 
 Файл [`util.go`](util/util.go) содержит метод `IsSessionExpired()` который используется, чтобы снова устанавливать стартовую сцену, если боту не пишут более 2 минут.
 

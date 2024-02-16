@@ -97,19 +97,20 @@ By default, the chatbot uses links to download files from the network, but users
 Links must lead to files from cloud storage or public access. In the file [`endpoints.go`](scenes/endpoints.go) there is the following code to send the file:
 ```go
 case "2":
-     message.AnswerWithUrlFile(
-         "https://images.rawpixel.com/image_png_1100/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTExL3Jhd3BpeGVsb2ZmaWNlMTlfcGhvdG9fb2ZfY29yZ2lzX2luX2NocmlzdG1hc19zd2Vhd GVyX2luX2FfcGFydF80YWM1ODk3Zi1mZDMwLTRhYTItYWM5NS05YjY3Yjg1MTFjZmUucG5n.png",
-         "corgi.png",
-         util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
+    message.SendUrlFile(
+    "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/corgi.pdf",
+    "corgi.pdf",
+    util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 ```
 Add a link to a file of any extension as the first parameter of the `answerWithUrlFile` method and specify the file name in the second parameter. The file name must contain an extension, for example "somefile.pdf".
 This line after modification will be in the following format:
+
 ```go
 case "2":
-     message.AnswerWithUrlFile(
-         "https://...somefile.pdf",
-         "somefile.pdf",
-         util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
+    message.SendUrlFile(
+    "https://...somefile.pdf",
+    "corgi.pdf",
+    util.GetString([]string{"send_file_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 ```
 
 All changes must be saved, after which you can launch the chatbot. To launch the chatbot, return to [step 2](#launch-chatbot).
@@ -137,7 +138,7 @@ Welcome to GREEN-API chatbot, user! GREEN-API provides the following types of da
 5. Geolocation 🌎
 6. ...
 
-To return to the beginning write stop
+To return to the beginning write stop or 0
 ```
 By selecting a number from the list and sending it, the chatbot will answer which API sent this type of message and share a link to information about the API.
 
@@ -170,19 +171,30 @@ func main() {
 		apiTokenInstance = "{TOKEN}"
 	)
 
+	go func() {                                 //Error handler
+	    select {
+	        case err := <-bot.ErrorChannel:
+	        if err != nil {
+	            log.Println(err)
+			}
+	    }
+	}()
+
     bot := chatbot.NewBot(idInstance, apiTokenInstance) //Initialize the bot with INSTANCE and TOKEN parameters from constants
 
-    if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{      //Setting instance settings
- 		"incomingWebhook":           "yes",
- 		"outgoingMessageWebhook":    "yes",
- 		"outgoingAPIMessageWebhook": "yes",
- 	}); err != nil {
+    _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
+        "incomingWebhook":            "yes",
+        "outgoingMessageWebhook":     "yes",
+        "outgoingAPIMessageWebhook":  "yes",
+        "pollMessageWebhook":         "yes",
+        "markIncomingMessagesReaded": "yes",
+    }); err != nil {
  		log.Fatalln(err)
  	}   
 
     bot.SetStartScene(scenes.StartScene{}) //Set the bot's starting scene
 
-     bot.StartReceivingNotifications() //Start the bot
+	bot.StartReceivingNotifications() //Start the bot
 }
 ```
 
@@ -192,11 +204,12 @@ Only one scene can be active at a time for each dialogue.
 
 For example, the first scene [`start.go`](scenes/start.go) is responsible for the welcome message. Regardless of the text of the message, the bot asks what language is convenient for the user and includes the following scene, which is responsible for processing the response.
 
-There are 3 scenes in the bot:
+There are 4 scenes in the bot:
 
 - Scene [`start.go`](scenes/start.go) - responds to any incoming message, sends a list of available languages. Launches the `MainMenu` scene.
 - Scene [`mainMenu.go`](scenes/mainMenu.go) - processes the user's selection and sends the main menu text in the selected language. Launches the `Endpoints` scene
 - Scene [`endpoints.go`](scenes/mainMenu.go) - executes the method selected by the user and sends a description of the method in the selected language.
+- Scene [`createGroup.go`](scenes/createGroup.go) - The scene creates a group if the user said that he added the bot to his contacts. If not, returns to the "endpoints" scene.
 
 The file [`util.go`](util/util.go) contains the `IsSessionExpired()` method which is used to set the start scene again if the bot has not been contacted for more than 2 minutes.
 
