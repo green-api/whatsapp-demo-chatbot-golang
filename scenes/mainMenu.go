@@ -13,29 +13,42 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 		if !util.IsSessionExpired(message) {
 			text, _ := message.Text()
 			switch text {
-
 			case "1":
-				message.UpdateStateData(map[string]interface{}{"lang": "eng"})
-				message.AnswerWithText(
-					util.GetString([]string{"welcome_message", "eng"}) +
-						message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
-						util.GetString([]string{"menu", "eng"}))
-
-				message.ActivateNextScene(EndpointsScene{})
-
+				s.sendMainMenu(message, "en")
 			case "2":
-				message.UpdateStateData(map[string]interface{}{"lang": "ru"})
-				message.AnswerWithText(
-					util.GetString([]string{"welcome_message", "ru"}) +
-						message.Body["senderData"].(map[string]interface{})["senderName"].(string) +
-						util.GetString([]string{"menu", "ru"}))
-
-				message.ActivateNextScene(EndpointsScene{})
-
+				s.sendMainMenu(message, "kz")
+			case "3":
+				s.sendMainMenu(message, "ru")
+			case "4":
+				s.sendMainMenu(message, "es")
+			case "5":
+				s.sendMainMenu(message, "he")
+			case "6":
+				s.sendMainMenu(message, "ar")
 			default:
-				message.AnswerWithText(
-					util.GetString([]string{"specify_language"}))
+				message.SendText(util.GetString([]string{"specify_language"}))
 			}
+		} else {
+			message.ActivateNextScene(MainMenuScene{})
+			message.SendText(util.GetString([]string{"select_language"}))
 		}
 	})
+}
+
+func (s MainMenuScene) sendMainMenu(message *chatbot.Notification, lang string) {
+	message.UpdateStateData(map[string]interface{}{"lang": lang})
+
+	var welcomeFile string
+	if lang == "en" {
+		welcomeFile = "assets/welcome_ru.png"
+	} else {
+		welcomeFile = "assets/welcome_en.png"
+	}
+
+	message.SendUploadFile(welcomeFile,
+		util.GetString([]string{"welcome_message", lang})+
+			message.Body["senderData"].(map[string]interface{})["senderName"].(string)+"\n"+
+			util.GetString([]string{"menu", lang}))
+
+	message.ActivateNextScene(EndpointsScene{})
 }

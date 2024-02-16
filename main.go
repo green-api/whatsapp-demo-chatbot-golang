@@ -7,22 +7,28 @@ import (
 )
 
 func main() {
-	const (
-		// idInstance = '1101123456'
-		// apiTokenInstance = 'abcdefghjklmn1234567890oprstuwxyz'
-		idInstance       = "{INSTANCE}"
-		apiTokenInstance = "{TOKEN}"
-	)
+	bot := chatbot.NewBot("1101848919", "fe0453b47e1b403c8d88ce881291ea002292b3037ae045bcb2")
 
-	bot := chatbot.NewBot(idInstance, apiTokenInstance)
+	go func() {
+		select {
+		case err := <-bot.ErrorChannel:
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}()
 
-	if _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
-		"incomingWebhook":           "yes",
-		"outgoingMessageWebhook":    "yes",
-		"outgoingAPIMessageWebhook": "yes",
-	}); err != nil {
-		log.Fatalln(err)
+	_, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
+		"incomingWebhook":            "yes",
+		"outgoingMessageWebhook":     "yes",
+		"outgoingAPIMessageWebhook":  "yes",
+		"pollMessageWebhook":         "yes",
+		"markIncomingMessagesReaded": "yes",
+	})
+	if err != nil {
+		bot.ErrorChannel <- err
 	}
+	log.Println("Settings updated by bot")
 
 	bot.SetStartScene(scenes.StartScene{})
 
