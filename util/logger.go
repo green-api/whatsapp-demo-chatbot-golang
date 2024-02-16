@@ -2,10 +2,9 @@ package util
 
 import (
 	"encoding/json"
+	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/config"
 	"github.com/sirupsen/logrus"
-	"github.com/sohlich/elogrus"
-	"gopkg.in/olivere/elastic.v5"
 	"os"
 	"strconv"
 	"time"
@@ -45,20 +44,11 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return append(line, '\n'), nil
 }
 
+var Logger *logrus.Logger
+
 func GetLogger() *logrus.Logger {
 	profile := config.ParseProfile(os.Getenv("ACTIVE_PROFILE"))
 	log := logrus.New()
-
-	client, err := elastic.NewClient(elastic.SetURL(CloudConfig.ElasticUrl))
-	if err != nil {
-		log.Fatal("Unable to create Elasticsearch client: ", err)
-	}
-
-	hook, err := elogrus.NewElasticHook(client, CloudConfig.ElasticHost, logrus.DebugLevel, "sw-chatbot-go")
-	if err != nil {
-		log.Error("Unable to create Elasticsearch hook: ", err)
-	}
-	log.Hooks.Add(hook)
 
 	location, err := time.LoadLocation("Europe/Moscow")
 	if err != nil {
@@ -77,5 +67,15 @@ func GetLogger() *logrus.Logger {
 		Instance:  strconv.FormatInt(CloudConfig.InstanceId, 10),
 	})
 
+	Logger = log
 	return log
+}
+
+func Log(message *chatbot.Notification, marker string) {
+	chatId, err := message.ChatId()
+	senderId, err := message.Sender()
+	if err != nil {
+		*message.ErrorChannel <- err
+	}
+	Logger.Debugln(marker, "messageId:", message.Body["idMessage"], "chatId:", chatId, "senderId:", senderId)
 }

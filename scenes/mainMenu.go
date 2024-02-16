@@ -11,6 +11,8 @@ type MainMenuScene struct {
 func (s MainMenuScene) Start(bot *chatbot.Bot) {
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
 		if !util.IsSessionExpired(message) {
+			util.Log(message, "IncomingMessageHandler in MainMenuScene handles")
+
 			text, _ := message.Text()
 			switch text {
 			case "1":
@@ -29,6 +31,8 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 				message.SendText(util.GetString([]string{"specify_language"}))
 			}
 		} else {
+			util.Log(message, "Session expired = true, Starting MainMenuScene...")
+
 			message.ActivateNextScene(MainMenuScene{})
 			message.SendText(util.GetString([]string{"select_language"}))
 		}
@@ -51,4 +55,6 @@ func (s MainMenuScene) sendMainMenu(message *chatbot.Notification, lang string) 
 			util.GetString([]string{"menu", lang}))
 
 	message.ActivateNextScene(EndpointsScene{})
+
+	util.Log(message, "Starting EndpointsScene...")
 }

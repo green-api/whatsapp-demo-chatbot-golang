@@ -6,6 +6,7 @@ import (
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 	"github.com/joho/godotenv"
 	"log"
+	"strconv"
 )
 
 func main() {
@@ -16,22 +17,22 @@ func main() {
 
 	util.GetConfig()
 
-	//bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
-	bot := chatbot.NewBot("1101848919", "fe0453b47e1b403c8d88ce881291ea002292b3037ae045bcb2")
+	bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
+	//bot := chatbot.NewBot("1101848919", "fe0453b47e1b403c8d88ce881291ea002292b3037ae045bcb2")
 
-	elcLog := util.GetLogger()
-	elcLog.WithField("marker", "Bot is inited").Debugln("Configuration data and environment loaded successfully")
+	logger := util.GetLogger()
+	logger.WithField("marker", "Bot is inited").Debugln("Configuration data and environment loaded successfully")
 
 	go func() {
 		select {
 		case err := <-bot.ErrorChannel:
 			if err != nil {
-				elcLog.WithField("marker", "bot throws an exception").Errorln(err)
+				logger.WithField("marker", "Bot throws an exception").Errorln(err)
 			}
 		}
 	}()
 
-	settings, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
+	_, err = bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
 		"incomingWebhook":            "yes",
 		"outgoingMessageWebhook":     "yes",
 		"outgoingAPIMessageWebhook":  "yes",
@@ -41,10 +42,9 @@ func main() {
 	if err != nil {
 		bot.ErrorChannel <- err
 	}
-	elcLog.WithField("marker", "settings updated by bot").Debugln(settings)
+	logger.Debugln("Settings updated by bot")
 
 	bot.SetStartScene(scenes.StartScene{})
 
-	elcLog.WithField("marker", "StartReceivingNotifications").Debugln("starting polling webhook queue")
 	bot.StartReceivingNotifications()
 }

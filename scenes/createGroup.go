@@ -13,6 +13,8 @@ func (s CreateGroupScene) Start(bot *chatbot.Bot) {
 
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
 		if !util.IsSessionExpired(message) {
+			util.Log(message, "IncomingMessageHandler in CreateGroupScene handles")
+
 			lang := message.GetStateData()["lang"].(string)
 			text, _ := message.Text()
 			senderId, _ := message.Sender()
@@ -62,6 +64,8 @@ func (s CreateGroupScene) Start(bot *chatbot.Bot) {
 				message.SendText(util.GetString([]string{"not_recognized_message", lang}))
 			}
 		} else {
+			util.Log(message, "Session expired = true, Starting MainMenuScene...")
+
 			message.ActivateNextScene(MainMenuScene{})
 			message.SendText(util.GetString([]string{"select_language"}))
 		}

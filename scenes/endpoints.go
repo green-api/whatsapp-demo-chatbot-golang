@@ -16,6 +16,8 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
 		if !util.IsSessionExpired(message) {
+			util.Log(message, "IncomingMessageHandler in EndpointsScene handles")
+
 			lang := message.GetStateData()["lang"].(string)
 			text, _ := message.Text()
 			senderName := message.Body["senderData"].(map[string]interface{})["senderName"].(string)
@@ -100,6 +102,8 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				message.SendText(util.GetString([]string{"add_to_contact", lang}))
 				message.SendContact(map[string]interface{}{"firstName": util.GetString([]string{"bot_name", lang}), "phoneContact": strings.ReplaceAll(botNumber, "@c.us", "")})
 				message.ActivateNextScene(CreateGroupScene{})
+
+				util.Log(message, "Starting CreateGroupScene...")
 			case "12":
 				message.AnswerWithText(util.GetString([]string{"send_quoted_message", lang}) + util.GetString([]string{"links", lang, "send_quoted_message_documentation"}))
 
@@ -129,6 +133,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				message.SendText(util.GetString([]string{"not_recognized_message", lang}))
 			}
 		} else {
+			util.Log(message, "Session expired = true, Starting MainMenuScene...")
 			message.ActivateNextScene(MainMenuScene{})
 			message.SendText(util.GetString([]string{"select_language"}))
 		}
@@ -136,6 +141,8 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 }
 
 func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, chatId string, lang string) {
+	util.Log(message, "processPollUpdate executing")
+
 	webhookBody, _ := json.Marshal(message.Body)
 	var pollMessage model.PollMessage
 	if err := json.Unmarshal(webhookBody, &pollMessage); err != nil {
