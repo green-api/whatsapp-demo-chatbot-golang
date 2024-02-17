@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	bot := chatbot.NewBot("1101848919", "fe0453b47e1b403c8d88ce881291ea002292b3037ae045bcb2")
+	bot := chatbot.NewBot("{instanceId}", "{TokenId}")
 
 	go func() {
 		select {
@@ -28,7 +28,6 @@ func main() {
 	if err != nil {
 		bot.ErrorChannel <- err
 	}
-	log.Println("Settings updated by bot")
 
 	bot.SetStartScene(scenes.StartScene{})
 
