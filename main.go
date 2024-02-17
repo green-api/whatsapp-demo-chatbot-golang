@@ -10,8 +10,7 @@ func main() {
 	bot := chatbot.NewBot("{instanceId}", "{TokenId}")
 
 	go func() {
-		select {
-		case err := <-bot.ErrorChannel:
+		for err := range bot.ErrorChannel {
 			if err != nil {
 				log.Println(err)
 			}
