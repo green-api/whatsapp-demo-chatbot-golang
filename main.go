@@ -24,10 +24,9 @@ func main() {
 	logger.WithField("marker", "Bot is inited").Debugln("Configuration data and environment loaded successfully")
 
 	go func() {
-		select {
-		case err := <-bot.ErrorChannel:
+		for err := range bot.ErrorChannel {
 			if err != nil {
-				logger.WithField("marker", "Bot throws an exception").Errorln(err)
+				logger.Debugln(err)
 			}
 		}
 	}()
