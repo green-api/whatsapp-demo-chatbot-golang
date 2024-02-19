@@ -3,9 +3,7 @@ package util
 import (
 	"encoding/json"
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
-	"github.com/green-api/whatsapp-demo-chatbot-golang/config"
 	"github.com/sirupsen/logrus"
-	"os"
 	"strconv"
 	"time"
 )
@@ -32,10 +30,11 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	data["level"] = entry.Level.String()
 	data["service"] = f.Service
 	data["system"] = f.System
+	data["instance"] = f.Instance
 	data["pool"] = f.Pool
 	data["server"] = f.Server
-	data["instance"] = strconv.FormatInt(CloudConfig.InstanceId, 10)
 	data["container"] = f.Container
+	data["marker"] = f.Marker
 	data["message"] = entry.Message
 	line, err := json.Marshal(data)
 	if err != nil {
@@ -47,7 +46,6 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 var Logger *logrus.Logger
 
 func GetLogger() *logrus.Logger {
-	profile := config.ParseProfile(os.Getenv("ACTIVE_PROFILE"))
 	log := logrus.New()
 
 	location, err := time.LoadLocation("Europe/Moscow")
@@ -62,8 +60,6 @@ func GetLogger() *logrus.Logger {
 		Service:   CloudConfig.Service,
 		System:    CloudConfig.System,
 		Container: CloudConfig.Container,
-		Pool:      profile.Pool,
-		Server:    profile.Server,
 		Instance:  strconv.FormatInt(CloudConfig.InstanceId, 10),
 	})
 
