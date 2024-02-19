@@ -56,10 +56,10 @@ func GetLogger() *logrus.Logger {
 	log.SetLevel(logrus.DebugLevel)
 	log.SetFormatter(&CustomFormatter{
 		Location:  location,
-		Project:   CloudConfig.Project,
-		Service:   CloudConfig.Service,
-		System:    CloudConfig.System,
-		Container: CloudConfig.Container,
+		Project:   "",
+		Service:   "",
+		System:    "",
+		Container: "",
 		Instance:  strconv.FormatInt(CloudConfig.InstanceId, 10),
 	})
 
