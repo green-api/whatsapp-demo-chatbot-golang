@@ -47,10 +47,18 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			case "4":
 				message.SendText(util.GetString([]string{"send_audio_message", lang}) + util.GetString([]string{"links", lang, "send_file_documentation"}))
-				message.SendUrlFile(util.CloudConfig.Link3, "audio.mp3", "")
+				var fileLink = util.CloudConfig.Link5
+				if lang == "ru" {
+					fileLink = util.CloudConfig.Link3
+				}
+				message.SendUrlFile(fileLink, "audio.mp3", "")
 
 			case "5":
-				message.SendUrlFile(util.CloudConfig.Link4, "video.mp4",
+				var fileLink = util.CloudConfig.Link6
+				if lang == "ru" {
+					fileLink = util.CloudConfig.Link4
+				}
+				message.SendUrlFile(fileLink, "video.mp4",
 					util.GetString([]string{"send_video_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "6":
@@ -122,11 +130,18 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 						util.GetString([]string{"links", lang, "youtube_channel"}))
 
 			case "стоп", "Стоп", "stop", "Stop", "0":
-				message.SendText(util.GetString([]string{"stop_message", lang}) + senderName)
+				message.SendText(util.GetString([]string{"stop_message", lang}) + "*" + senderName + "*")
 				message.ActivateNextScene(StartScene{})
 
 			case "menu", "меню", "Menu", "Меню":
-				message.SendText(util.GetString([]string{"menu", lang}))
+				var welcomeFile string
+				if lang == "en" {
+					welcomeFile = "assets/welcome_ru.png"
+				} else {
+					welcomeFile = "assets/welcome_en.png"
+				}
+
+				message.SendUploadFile(welcomeFile, util.GetString([]string{"menu", lang}))
 
 			case "":
 			default:

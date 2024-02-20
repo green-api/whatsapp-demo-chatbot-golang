@@ -20,6 +20,8 @@ type Data struct {
 	Link2      string `json:"link_2" yaml:"link_2"`
 	Link3      string `json:"link_3" yaml:"link_3"`
 	Link4      string `json:"link_4" yaml:"link_4"`
+	Link5      string `json:"link_5" yaml:"link_5"`
+	Link6      string `json:"link_6" yaml:"link_6"`
 }
 
 type CloudConfig struct {
