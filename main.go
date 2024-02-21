@@ -18,7 +18,7 @@ func main() {
 
 	//bot := chatbot.NewBot(strconv.FormatInt(util.CloudConfig.InstanceId, 10), util.CloudConfig.Token)
 	//bot := chatbot.NewBot("1101848919", "fe0453b47e1b403c8d88ce881291ea002292b3037ae045bcb2")
-	bot := chatbot.NewBot("7103900211", "88f72c51378244468289b680a81dc77bcb3f705de66949ac9e")
+	bot := chatbot.NewBot("7103861096", "faea159cf9774262894607cbb4843f009a3674f01e57415b95")
 
 	logger := util.GetLogger()
 	logger.WithField("marker", "Bot is inited").Debugln("Configuration data and environment loaded successfully")

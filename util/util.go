@@ -17,7 +17,7 @@ func ContainString(optionVotes []string, targetWid string) bool {
 func IsSessionExpired(notification *chatbot.Notification) bool {
 	lastTouchTime, ok := notification.GetStateData()["last_touch_timestamp"].(time.Time)
 
-	if ok && time.Since(lastTouchTime).Minutes() > 2 {
+	if ok && time.Since(lastTouchTime).Minutes() > 5 {
 		notification.UpdateStateData(map[string]interface{}{"last_touch_timestamp": time.Now()})
 		return true
 	}

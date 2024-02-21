@@ -3,7 +3,6 @@ package scenes
 import (
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
-	"strings"
 )
 
 type CreateGroupScene struct {
@@ -18,7 +17,6 @@ func (s CreateGroupScene) Start(bot *chatbot.Bot) {
 			lang := message.GetStateData()["lang"].(string)
 			text, _ := message.Text()
 			senderId, _ := message.Sender()
-			botNumber, _ := message.Body["instanceData"].(map[string]interface{})["wid"].(string)
 
 			switch text {
 			case "1":
@@ -71,8 +69,15 @@ func (s CreateGroupScene) Start(bot *chatbot.Bot) {
 				bot.ActivateNextScene(message.StateId, EndpointsScene{})
 
 			case "menu", "меню", "Menu", "Меню":
-				message.SendText(util.GetString([]string{"add_to_contact", lang}))
-				message.SendContact(map[string]interface{}{"firstName": util.GetString([]string{"bot_name", lang}), "phoneContact": strings.ReplaceAll(botNumber, "@c.us", "")})
+				var welcomeFile string
+				if lang == "en" {
+					welcomeFile = "assets/welcome_ru.png"
+				} else {
+					welcomeFile = "assets/welcome_en.png"
+				}
+
+				message.SendUploadFile(welcomeFile, util.GetString([]string{"menu", lang}))
+				message.ActivateNextScene(EndpointsScene{})
 
 			default:
 				message.SendText(util.GetString([]string{"not_recognized_message", lang}))
