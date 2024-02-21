@@ -58,7 +58,7 @@ func (s CreateGroupScene) Start(bot *chatbot.Bot) {
 					group["groupInviteLink"].(string))
 				message.ActivateNextScene(EndpointsScene{})
 
-			case "0":
+			case "menu", "меню", "Menu", "Меню", "0":
 				var welcomeFile string
 				if lang == "en" {
 					welcomeFile = "assets/welcome_ru.png"
@@ -67,17 +67,6 @@ func (s CreateGroupScene) Start(bot *chatbot.Bot) {
 				}
 				message.SendUploadFile(welcomeFile, util.GetString([]string{"menu", lang}))
 				bot.ActivateNextScene(message.StateId, EndpointsScene{})
-
-			case "menu", "меню", "Menu", "Меню":
-				var welcomeFile string
-				if lang == "en" {
-					welcomeFile = "assets/welcome_ru.png"
-				} else {
-					welcomeFile = "assets/welcome_en.png"
-				}
-
-				message.SendUploadFile(welcomeFile, util.GetString([]string{"menu", lang}))
-				message.ActivateNextScene(EndpointsScene{})
 
 			default:
 				message.SendText(util.GetString([]string{"not_recognized_message", lang}))
