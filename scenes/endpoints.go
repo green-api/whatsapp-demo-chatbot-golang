@@ -130,7 +130,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 						util.GetString([]string{"links", lang, "youtube_channel"}))
 
 			case "стоп", "Стоп", "stop", "Stop", "0":
-				message.SendText(util.GetString([]string{"stop_message", lang}) + "*!" + senderName + "*")
+				message.SendText(util.GetString([]string{"stop_message", lang}) + "*" + senderName + "*!")
 				message.ActivateNextScene(StartScene{})
 
 			case "menu", "меню", "Menu", "Меню":
