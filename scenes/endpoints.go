@@ -26,7 +26,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 			botNumber := message.Body["instanceData"].(map[string]interface{})["wid"].(string)
 
 			if message.Filter(map[string][]string{"messageType": {"pollUpdateMessage"}}) {
-				s.processPollUpdate(message, chatId, lang)
+				s.processPollUpdate(message, lang, senderId)
 			}
 
 			switch text {
@@ -155,7 +155,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 	})
 }
 
-func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, chatId string, lang string) {
+func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, lang string, senderId string) {
 	util.Log(message, "processPollUpdate executing")
 
 	webhookBody, _ := json.Marshal(message.Body)
@@ -164,9 +164,9 @@ func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, chatId 
 		log.Fatal(err)
 	}
 
-	isYes := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[0].OptionVoters, chatId)
-	isNo := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[1].OptionVoters, chatId)
-	isNothing := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[2].OptionVoters, chatId)
+	isYes := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[0].OptionVoters, senderId)
+	isNo := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[1].OptionVoters, senderId)
+	isNothing := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[2].OptionVoters, senderId)
 
 	var messageText string
 	if isYes {
