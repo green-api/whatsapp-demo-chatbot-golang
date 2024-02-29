@@ -24,7 +24,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 			botNumber := message.Body["instanceData"].(map[string]interface{})["wid"].(string)
 
 			if message.Filter(map[string][]string{"messageType": {"pollUpdateMessage"}}) {
-				s.processPollUpdate(message, chatId, lang)
+				s.processPollUpdate(message, lang, senderId)
 			}
 
 			switch text {
@@ -45,10 +45,18 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			case "4":
 				message.SendText(util.GetString([]string{"send_audio_message", lang}) + util.GetString([]string{"links", lang, "send_file_documentation"}))
-				message.SendUrlFile("https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Audio_for_bot.mp3", "audio.mp3", "")
+				var fileLink = "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Audio_bot_eng.mp3"
+				if lang == "ru" {
+					fileLink = "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Audio_bot.mp3"
+				}
+				message.SendUrlFile(fileLink, "audio.mp3", "")
 
 			case "5":
-				message.SendUrlFile("https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/For_bot.mp4", "video.mp4",
+				var fileLink = "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Video_bot_eng.mp4"
+				if lang == "ru" {
+					fileLink = "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Video_bot_ru.mp4"
+				}
+				message.SendUrlFile(fileLink, "video.mp4",
 					util.GetString([]string{"send_video_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "6":
@@ -119,11 +127,18 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 						util.GetString([]string{"links", lang, "youtube_channel"}))
 
 			case "стоп", "Стоп", "stop", "Stop", "0":
-				message.SendText(util.GetString([]string{"stop_message", lang}) + senderName)
+				message.SendText(util.GetString([]string{"stop_message", lang}) + "*" + senderName + "*!")
 				message.ActivateNextScene(StartScene{})
 
 			case "menu", "меню", "Menu", "Меню":
-				message.SendText(util.GetString([]string{"menu", lang}))
+				var welcomeFile string
+				if lang == "en" {
+					welcomeFile = "assets/welcome_ru.png"
+				} else {
+					welcomeFile = "assets/welcome_en.png"
+				}
+
+				message.SendUploadFile(welcomeFile, util.GetString([]string{"menu", lang}))
 
 			case "":
 			default:
@@ -136,16 +151,16 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 	})
 }
 
-func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, chatId string, lang string) {
+func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, lang string, senderId string) {
 	webhookBody, _ := json.Marshal(message.Body)
 	var pollMessage model.PollMessage
 	if err := json.Unmarshal(webhookBody, &pollMessage); err != nil {
 		log.Fatal(err)
 	}
 
-	isYes := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[0].OptionVoters, chatId)
-	isNo := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[1].OptionVoters, chatId)
-	isNothing := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[2].OptionVoters, chatId)
+	isYes := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[0].OptionVoters, senderId)
+	isNo := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[1].OptionVoters, senderId)
+	isNothing := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[2].OptionVoters, senderId)
 
 	var messageText string
 	if isYes {

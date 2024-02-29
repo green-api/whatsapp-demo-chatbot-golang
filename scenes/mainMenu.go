@@ -47,7 +47,7 @@ func (s MainMenuScene) sendMainMenu(message *chatbot.Notification, lang string) 
 
 	message.SendUploadFile(welcomeFile,
 		util.GetString([]string{"welcome_message", lang})+
-			message.Body["senderData"].(map[string]interface{})["senderName"].(string)+"\n"+
+			"*"+message.Body["senderData"].(map[string]interface{})["senderName"].(string)+"*!"+"\n"+
 			util.GetString([]string{"menu", lang}))
 
 	message.ActivateNextScene(EndpointsScene{})
