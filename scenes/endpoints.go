@@ -105,7 +105,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				message.AnswerWithText(util.GetString([]string{"send_quoted_message", lang})+util.GetString([]string{"links", lang, "send_quoted_message_documentation"}), "false")
 
 			case "13":
-				message.SendUploadFile("assets/about_go.jpg",
+				message.SendUrlFile("https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/about_go.jpg", "logo.jpg",
 					util.GetString([]string{"about_go_chatbot", lang})+
 						util.GetString([]string{"link_to_docs", lang})+
 						util.GetString([]string{"links", lang, "chatbot_documentation"})+
