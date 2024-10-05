@@ -93,7 +93,7 @@ send_poll_message_1:
   ar: ""
   kz: "\nӘдіс жұмысы туралы білу үшін сілтеме бойынша өтіңіз\n"
 poll_question:
-  ru: "Выберите вариант ответа\nВам нравиться работа демо чатбота?"
+  ru: "Выберите вариант ответа\nВам нравится работа демо чатбота?"
   en: "Select an answer\nDo you like the work of the demo chat bot?"
   he: "בחר תשובה\nהאם אתה אוהב את העבודה של בוט הצ'אט ההדגמה?"
   es: "Seleccione una respuesta\n¿Te gusta el trabajo del chatbot de demostración?"
@@ -114,7 +114,7 @@ poll_option_2:
   ar: ""
   kz: "Жоқ"
 poll_option_3:
-  ru: "Затрудняюсь ответит"
+  ru: "Затрудняюсь ответить"
   en: "Difficult to answer"
   he: "קשה לענות"
   es: "Difícil de responder"
@@ -170,7 +170,7 @@ send_link_message_preview:
   ar: ""
   kz: "*Бұл хабарлама превьюмен бірге* sendMessage әдісі арқылы жіберілген.\n*SendMessage* әдісі текст және сілтемеci бар хабарламаларды жіберуге мүмкіндік береді\n\nӘдіс жұмысы туралы білу үшін сілтеме бойынша өтіңіз\n"
 send_link_message_no_preview:
-  ru: "*Cообщение без превью* отправлено через метод sendMessage.\nДля отключение превью, необходимо при запросе метода *sendMessage* указать поле linkPreview: false\n\nЧтобы узнать как работает метод, пройдите по ссылке\n"
+  ru: "*Cообщение без превью* отправлено через метод sendMessage.\nДля отключения превью, необходимо при запросе метода *sendMessage* указать поле linkPreview: false\n\nЧтобы узнать как работает метод, пройдите по ссылке\n"
   en: "*This message without preview* was sent via the sendMessage method.\nTo disable preview, when requesting the *sendMessage* method, you must specify the linkPreview field: false\n\nIf you want to know how the method works, follow the link\n"
   he: "הודעה זו היא ללא תצוגה מקדימה GREEN API - שלח טקסט, כדי להשבית את התצוגה המקדימה עליך לציין את שדה ה-linkPreview: false\n"
   es: "Este mensaje sin vista previa* fue enviado mediante el método sendMessage, para deshabilitar la vista previa debe especificar el campo linkPreview: false\n"
