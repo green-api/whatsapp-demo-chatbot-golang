@@ -23,8 +23,10 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 				s.sendMainMenu(message, "es")
 			case "5":
 				s.sendMainMenu(message, "he")
-			case "6":
-				s.sendMainMenu(message, "ar")
+			// enable only and only when ar language will be released and ready
+			// otherwise, crash happens
+			//case "6":
+			//	s.sendMainMenu(message, "ar")
 			default:
 				message.SendText(util.GetString([]string{"specify_language"}))
 			}

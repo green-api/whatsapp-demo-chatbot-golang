@@ -57,13 +57,13 @@ func (s CreateGroupScene) Start(bot *chatbot.Bot) {
 				message.ActivateNextScene(EndpointsScene{})
 
 			case "menu", "меню", "Menu", "Меню", "0":
-				var welcomeFile string
+				var welcomeFileURL string
 				if lang == "en" {
-					welcomeFile = "assets/welcome_ru.png"
+					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
 				} else {
-					welcomeFile = "assets/welcome_en.png"
+					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
 				}
-				message.SendUploadFile(welcomeFile, util.GetString([]string{"menu", lang}))
+				message.SendUrlFile(welcomeFileURL, "welcome.jpg", util.GetString([]string{"menu", lang}))
 				bot.ActivateNextScene(message.StateId, EndpointsScene{})
 
 			default:
