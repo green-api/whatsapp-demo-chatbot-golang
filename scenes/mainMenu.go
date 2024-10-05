@@ -38,17 +38,14 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 func (s MainMenuScene) sendMainMenu(message *chatbot.Notification, lang string) {
 	message.UpdateStateData(map[string]interface{}{"lang": lang})
 
-	var welcomeFile string
+	var welcomeFileURL string
 	if lang == "en" {
-		welcomeFile = "assets/welcome_ru.png"
+		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
 	} else {
-		welcomeFile = "assets/welcome_en.png"
+		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
 	}
-
-	message.SendUploadFile(welcomeFile,
-		util.GetString([]string{"welcome_message", lang})+
-			"*"+message.Body["senderData"].(map[string]interface{})["senderName"].(string)+"*!"+"\n"+
-			util.GetString([]string{"menu", lang}))
-
+	message.SendUrlFile(welcomeFileURL,
+		"welcome.jpg",
+		util.GetString([]string{"welcome_message", lang})+"*"+message.Body["senderData"].(map[string]interface{})["senderName"].(string)+"*!"+"\n"+util.GetString([]string{"menu", lang}))
 	message.ActivateNextScene(EndpointsScene{})
 }

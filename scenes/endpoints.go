@@ -2,11 +2,12 @@ package scenes
 
 import (
 	"encoding/json"
+	"log"
+	"strings"
+
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/model"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
-	"log"
-	"strings"
 )
 
 type EndpointsScene struct {
@@ -19,7 +20,6 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 			lang := message.GetStateData()["lang"].(string)
 			text, _ := message.Text()
 			senderName := message.Body["senderData"].(map[string]interface{})["senderName"].(string)
-			chatId, _ := message.ChatId()
 			senderId, _ := message.Sender()
 			botNumber := message.Body["instanceData"].(map[string]interface{})["wid"].(string)
 
@@ -29,7 +29,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			switch text {
 			case "1":
-				message.SendText(util.GetString([]string{"send_text_message", lang}) + util.GetString([]string{"links", lang, "send_text_documentation"}))
+				message.SendText(util.GetString([]string{"send_text_message", lang})+util.GetString([]string{"links", lang, "send_text_documentation"}), "false")
 
 			case "2":
 				message.SendUrlFile(
@@ -44,7 +44,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 					util.GetString([]string{"send_image_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "4":
-				message.SendText(util.GetString([]string{"send_audio_message", lang}) + util.GetString([]string{"links", lang, "send_file_documentation"}))
+				message.SendText(util.GetString([]string{"send_audio_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}), "false")
 				var fileLink = "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Audio_bot_eng.mp3"
 				if lang == "ru" {
 					fileLink = "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Audio_bot.mp3"
@@ -60,18 +60,18 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 					util.GetString([]string{"send_video_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "6":
-				message.SendText(util.GetString([]string{"send_contact_message", lang}) + util.GetString([]string{"links", lang, "send_contact_documentation"}))
+				message.SendText(util.GetString([]string{"send_contact_message", lang})+util.GetString([]string{"links", lang, "send_contact_documentation"}), "false")
 				message.SendContact(map[string]interface{}{"firstName": senderName, "phoneContact": strings.ReplaceAll(senderId, "@c.us", "")})
 
 			case "7":
-				message.SendText(util.GetString([]string{"send_location_message", lang}) + util.GetString([]string{"links", lang, "send_location_documentation"}))
+				message.SendText(util.GetString([]string{"send_location_message", lang})+util.GetString([]string{"links", lang, "send_location_documentation"}), "false")
 				message.SendLocation("", "", 35.888171, 14.440230)
 
 			case "8":
-				message.SendText(util.GetString([]string{"send_poll_message", lang}) +
-					util.GetString([]string{"links", lang, "send_poll_as_buttons"}) +
-					util.GetString([]string{"send_poll_message_1", lang}) +
-					util.GetString([]string{"links", lang, "send_poll_documentation"}))
+				message.SendText(util.GetString([]string{"send_poll_message", lang})+
+					util.GetString([]string{"links", lang, "send_poll_as_buttons"})+
+					util.GetString([]string{"send_poll_message_1", lang})+
+					util.GetString([]string{"links", lang, "send_poll_documentation"}), "false")
 
 				message.SendPoll(util.GetString([]string{"poll_question", lang}), false,
 					[]map[string]interface{}{
@@ -81,7 +81,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 					})
 
 			case "9":
-				message.SendText(util.GetString([]string{"get_avatar_message", lang}) + util.GetString([]string{"links", lang, "get_avatar_documentation"}))
+				message.SendText(util.GetString([]string{"get_avatar_message", lang})+util.GetString([]string{"links", lang, "get_avatar_documentation"}), "false")
 				avatar, _ := message.GreenAPI.Methods().Service().GetAvatar(senderId)
 
 				if avatar["urlAvatar"] != nil {
@@ -95,22 +95,14 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
 			case "10":
 				message.SendText(util.GetString([]string{"send_link_message_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}))
-				_, err := message.GreenAPI.Methods().Sending().SendMessage(map[string]interface{}{
-					"chatId":      chatId,
-					"message":     util.GetString([]string{"send_link_message_no_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}),
-					"linkPreview": false,
-				})
-				if err != nil {
-					*message.ErrorChannel <- err
-				}
-
+				message.SendText(util.GetString([]string{"send_link_message_no_preview", lang})+util.GetString([]string{"links", lang, "send_link_documentation"}), "false")
 			case "11":
-				message.SendText(util.GetString([]string{"add_to_contact", lang}))
+				message.SendText(util.GetString([]string{"add_to_contact", lang}), "false")
 				message.SendContact(map[string]interface{}{"firstName": util.GetString([]string{"bot_name", lang}), "phoneContact": strings.ReplaceAll(botNumber, "@c.us", "")})
 				message.ActivateNextScene(CreateGroupScene{})
 
 			case "12":
-				message.AnswerWithText(util.GetString([]string{"send_quoted_message", lang}) + util.GetString([]string{"links", lang, "send_quoted_message_documentation"}))
+				message.AnswerWithText(util.GetString([]string{"send_quoted_message", lang})+util.GetString([]string{"links", lang, "send_quoted_message_documentation"}), "false")
 
 			case "13":
 				message.SendUploadFile("assets/about_go.jpg",
@@ -127,26 +119,24 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 						util.GetString([]string{"links", lang, "youtube_channel"}))
 
 			case "стоп", "Стоп", "stop", "Stop", "0":
-				message.SendText(util.GetString([]string{"stop_message", lang}) + "*" + senderName + "*!")
+				message.SendText(util.GetString([]string{"stop_message", lang})+"*"+senderName+"*!", "false")
 				message.ActivateNextScene(StartScene{})
 
 			case "menu", "меню", "Menu", "Меню":
-				var welcomeFile string
+				var welcomeFileURL string
 				if lang == "en" {
-					welcomeFile = "assets/welcome_ru.png"
+					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
 				} else {
-					welcomeFile = "assets/welcome_en.png"
+					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
 				}
-
-				message.SendUploadFile(welcomeFile, util.GetString([]string{"menu", lang}))
-
+				message.SendUrlFile(welcomeFileURL, "welcome.jpg", util.GetString([]string{"menu", lang}))
 			case "":
 			default:
-				message.SendText(util.GetString([]string{"not_recognized_message", lang}))
+				message.SendText(util.GetString([]string{"not_recognized_message", lang}), "false")
 			}
 		} else {
 			message.ActivateNextScene(MainMenuScene{})
-			message.SendText(util.GetString([]string{"select_language"}))
+			message.SendText(util.GetString([]string{"select_language"}), "false")
 		}
 	})
 }
