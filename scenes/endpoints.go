@@ -84,7 +84,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				message.SendText(util.GetString([]string{"get_avatar_message", lang})+util.GetString([]string{"links", lang, "get_avatar_documentation"}), "false")
 				avatar, _ := message.GreenAPI.Methods().Service().GetAvatar(senderId)
 
-				if avatar["urlAvatar"] != nil {
+				if avatar["urlAvatar"] != "" {
 					message.SendUrlFile(
 						avatar["urlAvatar"].(string),
 						"avatar",
