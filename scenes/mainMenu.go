@@ -40,9 +40,9 @@ func (s MainMenuScene) sendMainMenu(message *chatbot.Notification, lang string) 
 
 	var welcomeFileURL string
 	if lang == "en" {
-		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
-	} else {
 		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
+	} else {
+		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
 	}
 	message.SendUrlFile(welcomeFileURL,
 		"welcome.jpg",

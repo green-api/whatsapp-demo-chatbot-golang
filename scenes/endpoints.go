@@ -125,9 +125,9 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 			case "menu", "меню", "Menu", "Меню":
 				var welcomeFileURL string
 				if lang == "en" {
-					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
-				} else {
 					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
+				} else {
+					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
 				}
 				message.SendUrlFile(welcomeFileURL, "welcome.jpg", util.GetString([]string{"menu", lang}))
 			case "":
