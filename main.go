@@ -21,7 +21,7 @@ func main() {
 		}
 	}
 	if idInstance == "{idInstance}" || authToken == "{authToken}" {
-		log.Fatal("No idInstance or authToken set")
+		log.Fatal("No idInstance or authToken set! Exiting chatbot.")
 	}
 	bot := chatbot.NewBot(idInstance, authToken)
 	
