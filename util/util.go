@@ -3,6 +3,8 @@ package util
 import (
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	"time"
+	"strings"
+	"github.com/joho/godotenv"
 )
 
 func ContainString(optionVotes []string, targetWid string) bool {
@@ -24,4 +26,16 @@ func IsSessionExpired(notification *chatbot.Notification) bool {
 
 	notification.UpdateStateData(map[string]interface{}{"last_touch_timestamp": time.Now()})
 	return false
+}
+
+func LinkPreview() string {
+	envFile, err := godotenv.Read(".env")
+	if err == nil {
+		if val, exists := envFile["LINK_PREVIEW"]; exists && len(val) > 0 {
+			if strings.ToLower(val) == "false" {
+				return "false"
+			}
+		}
+	}
+	return "true"
 }
