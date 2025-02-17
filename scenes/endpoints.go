@@ -94,7 +94,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				}
 
 			case "10":
-				message.SendText(util.GetString([]string{"send_link_message_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}))
+				message.SendText(util.GetString([]string{"send_link_message_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}), "true")
 				message.SendText(util.GetString([]string{"send_link_message_no_preview", lang})+util.GetString([]string{"links", lang, "send_link_documentation"}), "false")
 			case "11":
 				message.SendText(util.GetString([]string{"add_to_contact", lang}), util.LinkPreview())
