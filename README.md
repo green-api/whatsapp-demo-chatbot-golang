@@ -3,7 +3,7 @@
 - [Документация на русском](README_RU.md).
 
 An example of a chatbot written in Go using the API service for Whatsapp [green-api.com](https://green-api.com/en/).
-The chatbot clearly demonstrates the use of the API to send text messages, files, pictures, locations and contacts.
+The chatbot clearly demonstrates the use of the API to send text messages, files, pictures, locations, contacts, and integrates OpenAI GPT for intelligent conversations.
 
 
 ## Content
@@ -14,6 +14,7 @@ The chatbot clearly demonstrates the use of the API to send text messages, files
 * [Usage](#usage)
 * [Code structure](#code-structure)
 * [Message management](#message-management)
+* [GPT functionality](#gpt-functionality)
 
 
 ## Setting up the environment for running the chatbot
@@ -53,16 +54,16 @@ In order to set up a chatbot on your Whatsapp account, you need to go to [your p
     apiTokenInstance
 ```
 
-Don't forget to enable all notifications in your instance settings, so that the chatbot can immediately start receiving messages.
-After receiving these parameters, find the class [`main.go`](main.go) and enter `idInstance` and `apiTokenInstance` into the constant values.
-Data initialization is necessary to link the bot with your Whatsapp account:
+You'll also need an OpenAI API key to use the GPT functionality. You can obtain one from the [OpenAI platform](https://platform.openai.com/).
 
+Create a `.env` file in the project root with the following variables:
 ```
-    const (
-        idInstance       = "{INSTANCE}"
-        apiTokenInstance = "{TOKEN}"
-    )
+ID_INSTANCE=your_instance_id
+AUTH_TOKEN=your_api_token
+OPENAI_API_KEY=your_openai_api_key
 ```
+
+Don't forget to enable all notifications in your instance settings, so that the chatbot can immediately start receiving messages.
 
 You can then run the program by clicking start in the IDE interface or entering the following query on the command line:
 ```
@@ -75,10 +76,10 @@ The library [whatsapp-chatbot-golang](https://github.com/green-api/whatsapp-chat
 All settings for receiving notifications are disabled by default; the chatbot will enable the following settings:
 ```
      "incomingWebhook": "yes",
-     "outgoingMessageWebhook": "yes",
-     "outgoingAPIMessageWebhook": "yes",
+     "pollMessageWebhook": "yes",
+     "markIncomingMessagesReaded": "yes"
 ```
-which are responsible for receiving notifications about incoming and outgoing messages.
+which are responsible for receiving notifications about incoming messages and polls.
 
 The process of changing settings takes several minutes, during which time the instance will be unavailable. Messages sent to the chatbot during this time will not be processed.
 
@@ -137,6 +138,7 @@ Welcome to GREEN-API chatbot, user! GREEN-API provides the following types of da
 4. Contact 📱
 5. Geolocation 🌎
 6. ...
+14. 🔥 Conversation with ChatGPT 🤖
 
 To return to the beginning write stop or 0
 ```
@@ -149,52 +151,57 @@ This message was sent via the sendMessage method
 To find out how the method works, follow the link
 https://greenapi.com/en/docs/api/sending/SendMessage/
 ```
-If you send something other than numbers 1-11, the chatbot will succinctly answer:
+
+If you send something other than numbers 1-14, the chatbot will succinctly answer:
 ```
 Sorry, I didn't quite understand you, write a menu to see the possible options
 ```
-The user can also call up the menu by sending a message containing"menu". And by sending “stop”, the user will end the conversation with the chatbot and receive the message:
+The user can also call up the menu by sending a message containing "menu". And by sending "stop", the user will end the conversation with the chatbot and receive the message:
 ```
 Thank you for using the GREEN-API chatbot, user!
 ```
 
+### GPT Chat Mode
+
+By selecting option 14, you can interact with OpenAI's GPT model:
+
+```
+🤖 You have started a conversation with ChatGPT.
+Ask any questions, and ChatGPT will try to answer them.
+To return to the main menu, type *menu*, *exit*, *stop*, or *back*.
+```
+
+In this mode, your messages will be processed by GPT, and you'll receive intelligent responses. The conversation history is maintained throughout your session, allowing for contextual interactions.
+
+To exit GPT mode and return to the main menu, type any of the exit commands like "menu", "exit", "back", etc.
+
 ## Code structure
 
-The main file of the chatbot is [`main.go`](main.go), it contains the `main` function and program execution begins from there. In this class, the bot object is initialized using the `BotFactory` class, the first scene is set, and the bot is launched.
+The main file of the chatbot is [`main.go`](main.go), it contains the `main` function and program execution begins from there. In this class, the bot object is initialized using the `BotFactory` class, the GPT bot is configured and registered, the first scene is set, and the bot is launched.
 
 ```go
 func main() {
-    const (
-		// idInstance = '1101123456'
-		// apiTokenInstance = 'abcdefghjklmn1234567890oprstuwxyz'
-		idInstance       = "{INSTANCE}"
-		apiTokenInstance = "{TOKEN}"
-	)
+    // Load environment variables
+    err := godotenv.Load(".env")
+    
+    // Initialize the base bot
+    baseBot := chatbot.NewBot(idInstance, authToken)
 
-	go func() {                                 //Error handler
-	    select {
-	        case err := <-bot.ErrorChannel:
-	        if err != nil {
-	            log.Println(err)
-			}
-	    }
-	}()
+    // Initialize and register the GPT bot
+    gptConfig := gptbot.GPTBotConfig{
+       IDInstance:       idInstance,
+       APITokenInstance: authToken,
+       OpenAIApiKey:     openaiToken,
+       Model:            gptbot.ModelGPT4o,
+       MaxHistoryLength: 10,
+       SystemMessage:    "You are a helpful WhatsApp assistant.",
+    }
+    gptHelper := gptbot.NewWhatsappGptBot(gptConfig)
+    registry.RegisterGptHelper(gptHelper)
 
-    bot := chatbot.NewBot(idInstance, apiTokenInstance) //Initialize the bot with INSTANCE and TOKEN parameters from constants
-
-    _, err := bot.GreenAPI.Methods().Account().SetSettings(map[string]interface{}{
-        "incomingWebhook":            "yes",
-        "outgoingMessageWebhook":     "yes",
-        "outgoingAPIMessageWebhook":  "yes",
-        "pollMessageWebhook":         "yes",
-        "markIncomingMessagesReaded": "yes",
-    }); err != nil {
- 		log.Fatalln(err)
- 	}   
-
-    bot.SetStartScene(scenes.StartScene{}) //Set the bot's starting scene
-
-	bot.StartReceivingNotifications() //Start the bot
+    // Set the start scene and launch the bot
+    baseBot.SetStartScene(scenes.StartScene{})
+    baseBot.StartReceivingNotifications()
 }
 ```
 
@@ -204,16 +211,19 @@ Only one scene can be active at a time for each dialogue.
 
 For example, the first scene [`start.go`](scenes/start.go) is responsible for the welcome message. Regardless of the text of the message, the bot asks what language is convenient for the user and includes the following scene, which is responsible for processing the response.
 
-There are 4 scenes in the bot:
+There are 5 scenes in the bot:
 
 - Scene [`start.go`](scenes/start.go) - responds to any incoming message, sends a list of available languages. Launches the `MainMenu` scene.
 - Scene [`mainMenu.go`](scenes/mainMenu.go) - processes the user's selection and sends the main menu text in the selected language. Launches the `Endpoints` scene
-- Scene [`endpoints.go`](scenes/mainMenu.go) - executes the method selected by the user and sends a description of the method in the selected language.
+- Scene [`endpoints.go`](scenes/endpoints.go) - executes the method selected by the user and sends a description of the method in the selected language. Can transition to the GPT scene when option 14 is selected.
 - Scene [`createGroup.go`](scenes/createGroup.go) - The scene creates a group if the user said that he added the bot to his contacts. If not, returns to the "endpoints" scene.
+- Scene [`gptScene.go`](scenes/gptScene.go) - Handles GPT conversation mode, processing user messages through OpenAI's API and maintaining conversation context.
 
 The file [`util.go`](util/util.go) contains the `IsSessionExpired()` method which is used to set the start scene again if the bot has not been contacted for more than 2 minutes.
 
 The file [`ymlReader.go`](util/ymlReader.go) contains the `getString()` method which returns strings from the `strings.xml` file by key. This file is used to store the texts of the bot's responses.
+
+A new component is the [`registry`](registry) package, which provides a global access point to the GPT bot instance using a registry pattern. This allows any scene to access the GPT functionality without tight coupling.
 
 ## Message management
 
@@ -221,7 +231,7 @@ As the chatbot indicates in its responses, all messages are sent via the API. Do
 
 As for receiving messages, messages are read through the HTTP API. Documentation on methods for receiving messages can be found at [greenapi.com/en/docs/api/receiving/technology-http-api](https://greenapi.com/en/docs/api/receiving/technology-http-api/).
 
-The chatbot uses the library [whatsapp-chatbot-golang](https://github.com/green-api/whatsapp-chatbot-golang), where methods for sending and receiving messages are already integrated, so messages are read automatically and sending regular text messages is simplified .
+The chatbot uses the library [whatsapp-chatbot-golang](https://github.com/green-api/whatsapp-chatbot-golang), where methods for sending and receiving messages are already integrated, so messages are read automatically and sending regular text messages is simplified.
 
 For example, a chatbot automatically sends a message to the contact from whom it received the message:
 ```go
@@ -231,6 +241,19 @@ However, other send methods can be called directly from the [whatsapp-api-client
 ```go
      message.GreenAPI.Methods().Service().GetAvatar(chatId)
 ```
+
+## GPT Functionality
+
+The chatbot integrates with OpenAI's GPT models using the [whatsapp-chatgpt-go](https://github.com/green-api/whatsapp-chatgpt-go) library. This enables the bot to have intelligent conversations with users.
+
+### How it works
+
+1. **Initialization**: The GPT bot is initialized in `main.go` with configuration including the OpenAI API key and system prompt.
+2. **Registry Pattern**: The bot instance is stored in a registry to be accessible from any scene.
+3. **GPT Scene**: A dedicated scene (`gptScene.go`) handles the GPT conversation mode.
+4. **Session Management**: The GPT scene maintains conversation history using the session data, enabling contextual exchanges.
+5. **Exit Commands**: Users can exit the GPT mode using various commands in different languages.
+
 
 ## License
 

@@ -2,16 +2,17 @@ package scenes
 
 import (
 	"encoding/json"
-	"log"
-	"strings"
-
+	greenapi "github.com/green-api/whatsapp-api-client-golang-v2"
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/model"
+	"github.com/green-api/whatsapp-demo-chatbot-golang/registry"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
+	"log"
+	"strconv"
+	"strings"
 )
 
-type EndpointsScene struct {
-}
+type EndpointsScene struct{}
 
 func (s EndpointsScene) Start(bot *chatbot.Bot) {
 
@@ -19,17 +20,28 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 		if !util.IsSessionExpired(message) {
 			lang := message.GetStateData()["lang"].(string)
 			text, _ := message.Text()
-			senderName := message.Body["senderData"].(map[string]interface{})["senderName"].(string)
+			senderName := ""
+			if sd, ok := message.Body["senderData"].(map[string]interface{}); ok {
+				if sn, ok := sd["senderName"].(string); ok {
+					senderName = sn
+				}
+			}
 			senderId, _ := message.Sender()
-			botNumber := message.Body["instanceData"].(map[string]interface{})["wid"].(string)
+			botNumber := ""
+			if id, ok := message.Body["instanceData"].(map[string]interface{}); ok {
+				if wid, ok := id["wid"].(string); ok {
+					botNumber = wid
+				}
+			}
 
 			if message.Filter(map[string][]string{"messageType": {"pollUpdateMessage"}}) {
 				s.processPollUpdate(message, lang, senderId)
+				return
 			}
 
 			switch text {
 			case "1":
-				message.SendText(util.GetString([]string{"send_text_message", lang})+util.GetString([]string{"links", lang, "send_text_documentation"}), util.LinkPreview())
+				message.SendText(util.GetString([]string{"send_text_message", lang})+util.GetString([]string{"links", lang, "send_text_documentation"}), "true")
 
 			case "2":
 				message.SendUrlFile(
@@ -44,7 +56,7 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 					util.GetString([]string{"send_image_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "4":
-				message.SendText(util.GetString([]string{"send_audio_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}), util.LinkPreview())
+				message.SendText(util.GetString([]string{"send_audio_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}), "true")
 				var fileLink = "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Audio_bot_eng.mp3"
 				if lang == "ru" {
 					fileLink = "https://storage.yandexcloud.net/sw-prod-03-test/ChatBot/Audio_bot.mp3"
@@ -60,49 +72,56 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 					util.GetString([]string{"send_video_message", lang})+util.GetString([]string{"links", lang, "send_file_documentation"}))
 
 			case "6":
-				message.SendText(util.GetString([]string{"send_contact_message", lang})+util.GetString([]string{"links", lang, "send_contact_documentation"}), util.LinkPreview())
-				message.SendContact(map[string]interface{}{"firstName": senderName, "phoneContact": strings.ReplaceAll(senderId, "@c.us", "")})
+				message.SendText(util.GetString([]string{"send_contact_message", lang})+util.GetString([]string{"links", lang, "send_contact_documentation"}), "true")
+				phoneStrSender := strings.ReplaceAll(senderId, "@c.us", "")
+				phoneIntSender, _ := strconv.Atoi(phoneStrSender)
+				message.SendContact(greenapi.Contact{PhoneContact: phoneIntSender, FirstName: senderName})
 
 			case "7":
-				message.SendText(util.GetString([]string{"send_location_message", lang})+util.GetString([]string{"links", lang, "send_location_documentation"}), util.LinkPreview())
+				message.SendText(util.GetString([]string{"send_location_message", lang})+util.GetString([]string{"links", lang, "send_location_documentation"}), "true")
 				message.SendLocation("", "", 35.888171, 14.440230)
 
 			case "8":
 				message.SendText(util.GetString([]string{"send_poll_message", lang})+
 					util.GetString([]string{"links", lang, "send_poll_as_buttons"})+
 					util.GetString([]string{"send_poll_message_1", lang})+
-					util.GetString([]string{"links", lang, "send_poll_documentation"}), util.LinkPreview())
+					util.GetString([]string{"links", lang, "send_poll_documentation"}), "true")
 
 				message.SendPoll(util.GetString([]string{"poll_question", lang}), false,
-					[]map[string]interface{}{
-						{"optionName": util.GetString([]string{"poll_option_1", lang})},
-						{"optionName": util.GetString([]string{"poll_option_2", lang})},
-						{"optionName": util.GetString([]string{"poll_option_3", lang})},
+					[]string{
+						util.GetString([]string{"poll_option_1", lang}),
+						util.GetString([]string{"poll_option_2", lang}),
+						util.GetString([]string{"poll_option_3", lang}),
 					})
 
 			case "9":
-				message.SendText(util.GetString([]string{"get_avatar_message", lang})+util.GetString([]string{"links", lang, "get_avatar_documentation"}), util.LinkPreview())
-				avatar, _ := message.GreenAPI.Methods().Service().GetAvatar(senderId)
+				message.SendText(util.GetString([]string{"get_avatar_message", lang})+util.GetString([]string{"links", lang, "get_avatar_documentation"}), "true")
+				resp, _ := message.Service().GetAvatar(senderId)
+				var avatar map[string]interface{}
+				_ = json.Unmarshal(resp.Body, &avatar)
 
-				if avatar["urlAvatar"] != "" {
+				if avatarURL, ok := avatar["urlAvatar"].(string); ok && avatarURL != "" {
 					message.SendUrlFile(
-						avatar["urlAvatar"].(string),
-						"avatar",
+						avatarURL,
+						"avatar.jpg",
 						util.GetString([]string{"avatar_found", lang}))
 				} else {
 					message.SendText(util.GetString([]string{"avatar_not_found", lang}))
 				}
 
 			case "10":
-				message.SendText(util.GetString([]string{"send_link_message_preview", lang}) + util.GetString([]string{"links", lang, "send_link_documentation"}), "true")
+				message.SendText(util.GetString([]string{"send_link_message_preview", lang})+util.GetString([]string{"links", lang, "send_link_documentation"}), "true")
 				message.SendText(util.GetString([]string{"send_link_message_no_preview", lang})+util.GetString([]string{"links", lang, "send_link_documentation"}), "false")
+
 			case "11":
-				message.SendText(util.GetString([]string{"add_to_contact", lang}), util.LinkPreview())
-				message.SendContact(map[string]interface{}{"firstName": util.GetString([]string{"bot_name", lang}), "phoneContact": strings.ReplaceAll(botNumber, "@c.us", "")})
+				message.SendText(util.GetString([]string{"add_to_contact", lang}), "true")
+				botPhoneStr := strings.ReplaceAll(botNumber, "@c.us", "")
+				botPhoneInt, _ := strconv.Atoi(botPhoneStr)
+				message.SendContact(greenapi.Contact{PhoneContact: botPhoneInt, FirstName: util.GetString([]string{"bot_name", lang})})
 				message.ActivateNextScene(CreateGroupScene{})
 
 			case "12":
-				message.AnswerWithText(util.GetString([]string{"send_quoted_message", lang})+util.GetString([]string{"links", lang, "send_quoted_message_documentation"}), util.LinkPreview())
+				message.AnswerWithText(util.GetString([]string{"send_quoted_message", lang})+util.GetString([]string{"links", lang, "send_quoted_message_documentation"}), "true")
 
 			case "13":
 				message.SendUrlFile("https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/about_go.jpg", "logo.jpg",
@@ -118,13 +137,27 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 						util.GetString([]string{"link_to_youtube", lang})+
 						util.GetString([]string{"links", lang, "youtube_channel"}))
 
+			case "14":
+				gptHelper := registry.GetGptHelper()
+				if gptHelper == nil {
+					log.Println("Error: gptHelperBot is nil when trying to start GPT scene")
+					message.SendText(util.GetString([]string{"sorry_message", lang}))
+					return
+				}
+
+				message.SendText(util.GetString([]string{"chat_gpt_intro", lang}))
+
+				_ = initializeGptSessionInState(message)
+
+				message.ActivateNextScene(GptScene{})
+
 			case "стоп", "Стоп", "stop", "Stop", "0":
-				message.SendText(util.GetString([]string{"stop_message", lang})+"*"+senderName+"*!", util.LinkPreview())
+				message.SendText(util.GetString([]string{"stop_message", lang})+"*"+senderName+"*!", "true")
 				message.ActivateNextScene(StartScene{})
 
 			case "menu", "меню", "Menu", "Меню":
 				var welcomeFileURL string
-				if lang == "en" {
+				if lang == "en" || lang == "es" || lang == "he" {
 					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
 				} else {
 					welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
@@ -132,11 +165,11 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				message.SendUrlFile(welcomeFileURL, "welcome.jpg", util.GetString([]string{"menu", lang}))
 			case "":
 			default:
-				message.SendText(util.GetString([]string{"not_recognized_message", lang}),util.LinkPreview())
+				message.SendText(util.GetString([]string{"not_recognized_message", lang}), "true")
 			}
 		} else {
-			message.ActivateNextScene(MainMenuScene{})
-			message.SendText(util.GetString([]string{"select_language"}), util.LinkPreview())
+			message.ActivateNextScene(StartScene{})
+			message.SendText(util.GetString([]string{"select_language"}))
 		}
 	})
 }
@@ -145,7 +178,13 @@ func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, lang st
 	webhookBody, _ := json.Marshal(message.Body)
 	var pollMessage model.PollMessage
 	if err := json.Unmarshal(webhookBody, &pollMessage); err != nil {
-		log.Fatal(err)
+		log.Printf("Error unmarshalling poll update: %v", err)
+		return
+	}
+
+	if pollMessage.MessageData.PollMessageData.Votes == nil || len(pollMessage.MessageData.PollMessageData.Votes) < 3 {
+		log.Printf("Received poll update with unexpected vote structure for %s", message.StateId)
+		return
 	}
 
 	isYes := util.ContainString(pollMessage.MessageData.PollMessageData.Votes[0].OptionVoters, senderId)
@@ -159,6 +198,8 @@ func (s EndpointsScene) processPollUpdate(message *chatbot.Notification, lang st
 		messageText = util.GetString([]string{"poll_answer_2", lang})
 	} else if isNothing {
 		messageText = util.GetString([]string{"poll_answer_3", lang})
+	} else {
+		return
 	}
 
 	message.SendText(messageText)
