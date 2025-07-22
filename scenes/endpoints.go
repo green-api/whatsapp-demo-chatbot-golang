@@ -2,14 +2,15 @@ package scenes
 
 import (
 	"encoding/json"
+	"log"
+	"strconv"
+	"strings"
+
 	greenapi "github.com/green-api/whatsapp-api-client-golang-v2"
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/model"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/registry"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
-	"log"
-	"strconv"
-	"strings"
 )
 
 type EndpointsScene struct{}
