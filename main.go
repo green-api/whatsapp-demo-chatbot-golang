@@ -1,9 +1,10 @@
 package main
 
 import (
-	greenapi "github.com/green-api/whatsapp-api-client-golang-v2"
 	"log"
 	"os"
+
+	greenapi "github.com/green-api/whatsapp-api-client-golang-v2"
 
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	gptbot "github.com/green-api/whatsapp-chatgpt-go"
