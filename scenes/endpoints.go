@@ -156,9 +156,6 @@ func (s EndpointsScene) Start(bot *chatbot.Bot) {
 				message.ActivateNextScene(GptScene{})
 
 			case "15":
-				message.SendText(util.GetString([]string{"sending_buttons_notice", lang}) +
-					util.GetString([]string{"buttons_warning", lang}))
-
 				phoneStrSender := strings.ReplaceAll(senderId, "@c.us", "")
 
 				buttons := []greenapi.InteractiveButton{

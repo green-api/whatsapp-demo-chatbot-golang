@@ -226,11 +226,11 @@ about_go_chatbot:
   ar: ""
   kz: "*GOLANG GREEN API чат-боты* WhatsApp API мүмкіндіктерін көрсетуге арналған.\nGOLANG GREEN API чат-боттың коды ашық, оның негізінде сіз өзіңіздің ботыңызды оңай жаза аласыз."
 buttons_demo_message:
-  ru: "Это сообщение отправлено через метод *SendInteractiveButtons*."
-  en: "This message was sent via the *SendInteractiveButtons* method."
-  es: "Este mensaje se envió mediante el método *SendInteractiveButtons*."
-  kz: "Бұл хабарлама *SendInteractiveButtons* әдісі арқылы жіберілді."
-  he: "הודעה זו נשלחה באמצעות השיטה *SendInteractiveButtons*."
+  ru: "\nЭто сообщение отправлено через метод *SendInteractiveButtons*.\n"
+  en: "\nThis message was sent via the *SendInteractiveButtons* method.\n"
+  es: "\nEste mensaje se envió mediante el método *SendInteractiveButtons*.\n"
+  kz: "\nБұл хабарлама *SendInteractiveButtons* әдісі арқылы жіберілді.\n"
+  he: "\nהודעה זו נשלחה באמצעות השיטה *SendInteractiveButtons*.\n"
 buttons_demo_title:
   ru: "*Интерактивные кнопки*"
   en: "*Interactive Buttons*"
@@ -250,11 +250,11 @@ reply_buttons_title:
   kz: "*Жылдам жауап беру түймелерді*"
   he: "*כפתור תשובה מהירה*"
 reply_buttons_message:
-  ru: "Это сообщение отправлено через метод *SendInteractiveButtonsReply*."
-  en: "This message was sent via the *SendInteractiveButtonsReply* method."
-  es: "Este mensaje se envía mediante el método *SendInteractiveButtonsReply*."
-  kz: "Бұл хабарлама *SendInteractiveButtonsReply* әдісі арқылы жіберілді."
-  he: "הודעה זו נשלחה באמצעות השיטה *SendInteractiveButtonsReply*."
+  ru: "\nЭто сообщение отправлено через метод *SendInteractiveButtonsReply*.\n"
+  en: "\nThis message was sent via the *SendInteractiveButtonsReply* method.\n"
+  es: "\nEste mensaje se envía mediante el método *SendInteractiveButtonsReply*.\n"
+  kz: "\nБұл хабарлама *SendInteractiveButtonsReply* әдісі арқылы жіберілді.\n"
+  he: \n"הודעה זו נשלחה באמצעות השיטה *SendInteractiveButtonsReply*.\n"
 reply_buttons_footer:
   ru: "*Выберите вариант ниже*"
   en: "*Select an option below*"
@@ -285,18 +285,6 @@ stop_button:
   es: "Parar"
   kz: "Тоқта"
   he: "עצור"
-sending_buttons_notice:
-  ru: "Следующие сообщения будут отправлены с использованием методов *SendInteractiveButtons* и *SendInteractiveButtonsReplay*.\nМы будем отправлять интерактивные кнопки и интерактивные кнопки с ответом!\n\n"
-  en: "The following messages will be sent using the *SendInteractiveButtons* and *SendInteractiveButtonsReplay* methods.\nWe will send interactive buttons and interactive buttons with a reply in them!\n\n"
-  es: "Los siguientes mensajes se enviarán mediante los métodos *SendInteractiveButtons* y *SendInteractiveButtonsReplay*.\n¡Enviaremos botones interactivos y botones interactivos con una respuesta!\n\n"
-  kz: "Келесі хабарламалар *SendInteractiveButtons* және *SendInteractiveButtonsReplay* әдістері арқылы жіберіледі.\nБіз интерактивті түймелер мен жауаптары бар интерактивті түймелерді жібереміз!\n\n"
-  he: "ההודעות הבאות יישלחו באמצעות השיטות *SendInteractiveButtons* ו-*SendInteractiveButtonsReplay*.\nנשלח כפתורים אינטראקטיביים וכפתורים אינטראקטיביים עם תשובה בתוכם!\n\n"
-buttons_warning:
-  ru: "⚠️ Обратите внимание: \nКнопки поддерживаются не во всех версиях приложения. Они будут видны в мобильной и веб-версиях, но *не отображаются в Windows Desktop*.\n"
-  en: "⚠️ Please note: \nButtons are not supported in all app versions. They will be visible in the mobile and web apps, but *are not displayed in the Windows Desktop* version.\n"
-  es: "⚠️ Ten en cuenta: \nLos botones no son compatibles con todas las versiones de la aplicación. Serán visibles en las aplicaciones móviles y web, pero *no se muestran en la versión de Windows Desktop*.\n"
-  kz: "⚠️ Назар аударыңыз: \nТүймелердің барлық қолданба нұсқаларында қолдауы жоқ. Олар мобильді және веб-қолданбаларда көрінеді, бірақ *Windows Desktop нұсқасында көрсетілмейді*.\n"
-  he: "⚠️ שימו לב:\n הכפתורים אינם נתמכים בכל גרסאות האפליקציה. הם יהיו גלויים באפליקציית המובייל והדפדפן, אך *לא מוצגים בגרסת Windows Desktop*.\n"
 link_to_docs:
   ru: "\n\n🔗 Ссылка на документацию\n"
   en: "\n\n🔗 Link to the documentation\n"
