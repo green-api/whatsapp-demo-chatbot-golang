@@ -6,6 +6,8 @@ An example of a chatbot written in Go using the API service for Whatsapp [green-
 The chatbot clearly demonstrates the use of the API to send text messages, files, pictures, locations, contacts, and integrates OpenAI GPT for intelligent conversations.
 
 
+AI agents should read [AGENTS.md](AGENTS.md) before changing code.
+
 ## Content
 
 * [Installing the environment for running the chatbot](#setting-up-the-environment-for-running-the-chatbot)
@@ -27,7 +29,7 @@ After completion, you need to check whether the environment was deployed correct
 ```
 To work correctly, the response to the entered request must be a version of Go no lower than:
 ```
-    go version go 1.19
+    go version go1.24.2
 ```
 
 Download and unzip the [zip-archive](https://github.com/green-api/whatsapp-demo-chatbot-golang) of the project or clone it with the version control system command:
@@ -76,10 +78,11 @@ The library [whatsapp-chatbot-golang](https://github.com/green-api/whatsapp-chat
 All settings for receiving notifications are disabled by default; the chatbot will enable the following settings:
 ```
      "incomingWebhook": "yes",
+     "incomingCallWebhook": "yes",
      "pollMessageWebhook": "yes",
      "markIncomingMessagesReaded": "yes"
 ```
-which are responsible for receiving notifications about incoming messages and polls.
+which enable notifications for incoming messages, polls and calls.
 
 The process of changing settings takes several minutes, during which time the instance will be unavailable. Messages sent to the chatbot during this time will not be processed.
 
@@ -90,6 +93,24 @@ This is necessary so that the chatbot does not start processing messages from ol
 After changing the settings and deleting incoming notifications, the chatbot will begin to respond to messages as standard. In total, this process takes no more than 5 minutes.
 
 To stop the chatbot, use the keyboard shortcut `Ctrl + C` in the command line.
+
+## WhatsApp voice calls
+
+- **16 — Receive a call from the bot.** In a private chat, this queues an outgoing call. Send `0` while waiting to cancel and see the menu again.
+- **17 — Call the bot.** This shows how to place a WhatsApp call. The bot also accepts calls placed directly, including before you choose a language.
+
+Incoming and outgoing calls share one queue. After the conversation, the bot sends a localized result and attaches `call-recording.mp3` if a recording is available.
+
+Use a connected GREEN-API instance with VoIP access and an OpenAI key with access to the configured Realtime model. The bot enables `incomingCallWebhook` at startup. Build with CGO and a C compiler, and make `ffmpeg` available on `PATH` for MP3 export. Run from the project root so the bot can read `strings.yaml` and `assets/incoming_call.png`.
+
+| Optional environment variable | Default |
+|---|---|
+| `CALL_RING_TIMEOUT_SECONDS` | 30 |
+| `CALL_INCOMING_RING_TIMEOUT_SECONDS` | 60 |
+| `CALL_TALK_TIMEOUT_SECONDS` | 180 |
+| `CALL_SHUTDOWN_TIMEOUT_SECONDS` | 30 |
+| `CALL_REALTIME_MODEL` | `gpt-realtime-2.1` |
+| `CALL_REALTIME_VOICE` | `marin` |
 
 ## Setting up a chatbot
 
