@@ -15,99 +15,120 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-type GptScene struct{}
+type GptScene struct{ Calls *CallHandlers }
 
 func (s GptScene) Start(bot *chatbot.Bot) {
 
-	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
+	s.Calls.register(bot, func(message *chatbot.Notification) {
 		if util.IsSessionExpired(message) {
-			message.ActivateNextScene(StartScene{})
+			message.ActivateNextScene(StartScene{Calls: s.Calls})
 			message.SendText(util.GetString([]string{"select_language"}))
 			return
 		}
 
 		lang := message.GetStateData()["lang"].(string)
-		text, err := message.Text()
-		if err != nil {
-			text = ""
-		}
-		textLower := strings.ToLower(text)
+		text, _ := message.Text()
 
-		exitCommands := map[string][]string{
-			"ru": {"меню", "выход", "стоп", "назад"},
-			"en": {"menu", "exit", "stop", "back"},
-			"he": {"תפריט", "יציאה", "עצור", "חזור", "exit"},
-			"es": {"menú", "salir", "parar", "atrás", "exit"},
-			"kz": {"мәзір", "шығу", "тоқта", "артқа", "меню"},
-		}
-
-		isExitCommand := false
-		if commands, ok := exitCommands[lang]; ok {
-			for _, cmd := range commands {
-				if textLower == cmd {
-					isExitCommand = true
-					break
-				}
-			}
-		}
-		if textLower == "menu" {
-			isExitCommand = true
-		}
-
-		if isExitCommand {
-			var welcomeFileURL string
-			if lang == "en" || lang == "es" || lang == "he" {
-				welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
-			} else {
-				welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
-			}
-			senderName := ""
-			if sd, ok := message.Body["senderData"].(map[string]interface{}); ok {
-				if sn, ok := sd["senderName"].(string); ok {
-					senderName = sn
-				}
-			}
-			message.SendUrlFile(welcomeFileURL,
-				"welcome.jpg",
-				util.GetString([]string{"welcome_message", lang})+"*"+senderName+"*!"+"\n"+util.GetString([]string{"menu", lang}))
-
-			message.ActivateNextScene(EndpointsScene{})
+		if isGptExitCommand(text, lang) {
+			s.exitToMenu(message, lang)
 			return
 		}
 
-		ctx := context.Background()
-		currentGptSessionData, err := loadGptSessionFromState(message)
-		if err != nil {
-			log.Printf("Error loading GPT session for %s, re-initializing: %v", message.StateId, err)
-			currentGptSessionData = initializeGptSessionInState(message)
-		}
-
-		gptHelper := registry.GetGptHelper()
-		if gptHelper == nil {
-			log.Println("ERROR: GPT Helper not registered!")
-			message.SendText(util.GetString([]string{"chat_gpt_error", lang}))
-			return
-		}
-
-		response, updatedGptSessionData, err := gptHelper.ProcessMessage(ctx, message, currentGptSessionData)
-
-		if err != nil {
-			log.Printf("Error processing GPT message for %s: %v", message.StateId, err)
-			message.SendText(util.GetString([]string{"chat_gpt_error", lang}))
-			return
-		}
-
-		message.SendText(response)
-
-		err = saveGptSessionToState(message, updatedGptSessionData) // Use renamed helper
-		if err != nil {
-			log.Printf("Error saving updated GPT session for %s: %v", message.StateId, err)
-		}
+		processGptMessage(message, lang)
 	})
+}
+
+func isGptExitCommand(text, lang string) bool {
+	textLower := strings.ToLower(text)
+
+	exitCommands := map[string][]string{
+		"ru": {"меню", "выход", "стоп", "назад"},
+		"en": {"menu", "exit", "stop", "back"},
+		"he": {"תפריט", "יציאה", "עצור", "חזור", "exit"},
+		"es": {"menú", "salir", "parar", "atrás", "exit"},
+		"kz": {"мәзір", "шығу", "тоқта", "артқа", "меню"},
+	}
+
+	isExitCommand := false
+
+	if commands, ok := exitCommands[lang]; ok {
+		for _, cmd := range commands {
+			if textLower == cmd {
+				isExitCommand = true
+				break
+			}
+		}
+	}
+
+	if textLower == "menu" {
+		isExitCommand = true
+	}
+
+	return isExitCommand
+}
+
+func (s GptScene) exitToMenu(message *chatbot.Notification, lang string) {
+	var welcomeFileURL string
+
+	if lang == "en" || lang == "es" || lang == "he" {
+		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
+	} else {
+		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
+	}
+
+	senderName := ""
+
+	if sd, ok := message.Body["senderData"].(map[string]interface{}); ok {
+		if sn, ok := sd["senderName"].(string); ok {
+			senderName = sn
+		}
+	}
+
+	message.SendUrlFile(welcomeFileURL,
+		"welcome.jpg",
+		util.GetString([]string{"welcome_message", lang})+"*"+senderName+"*!"+"\n"+util.GetString([]string{"menu", lang}))
+
+	message.ActivateNextScene(EndpointsScene{Calls: s.Calls})
+}
+
+func processGptMessage(message *chatbot.Notification, lang string) {
+
+	ctx := context.Background()
+	currentGptSessionData, err := loadGptSessionFromState(message)
+
+	if err != nil {
+		log.Printf("Error loading GPT session for %s, re-initializing: %v", message.StateId, err)
+		currentGptSessionData = initializeGptSessionInState(message)
+	}
+
+	gptHelper := registry.GetGptHelper()
+
+	if gptHelper == nil {
+		log.Println("ERROR: GPT Helper not registered!")
+		message.SendText(util.GetString([]string{"chat_gpt_error", lang}))
+		return
+	}
+
+	response, updatedGptSessionData, err := gptHelper.ProcessMessage(ctx, message, currentGptSessionData)
+
+	if err != nil {
+		log.Printf("Error processing GPT message for %s: %v", message.StateId, err)
+		message.SendText(util.GetString([]string{"chat_gpt_error", lang}))
+		return
+	}
+
+	message.SendText(response)
+
+	err = saveGptSessionToState(message, updatedGptSessionData) // Use renamed helper
+
+	if err != nil {
+		log.Printf("Error saving updated GPT session for %s: %v", message.StateId, err)
+	}
 }
 
 func initializeGptSessionInState(notification *chatbot.Notification) *gptbot.GPTSessionData {
 	gptHelper := registry.GetGptHelper()
+
 	if gptHelper == nil {
 		log.Println("Error: Cannot initialize GPT session, helper bot not registered")
 		return &gptbot.GPTSessionData{
@@ -128,9 +149,11 @@ func initializeGptSessionInState(notification *chatbot.Notification) *gptbot.GPT
 	}
 
 	err := saveGptSessionToState(notification, &newSession)
+
 	if err != nil {
 		log.Printf("Error saving initial GPT session for %s: %v", notification.StateId, err)
 	}
+
 	return &newSession
 }
 

@@ -5,15 +5,14 @@ import (
 	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 )
 
-type MainMenuScene struct {
-}
+type MainMenuScene struct{ Calls *CallHandlers }
 
 func (s MainMenuScene) Start(bot *chatbot.Bot) {
-	bot.IncomingMessageHandler(func(message *chatbot.Notification) {
+	s.Calls.register(bot, func(message *chatbot.Notification) {
 		if !util.IsSessionExpired(message) {
 			s.SendMainMenu(message)
 		} else {
-			message.ActivateNextScene(StartScene{})
+			message.ActivateNextScene(StartScene{Calls: s.Calls})
 			message.SendText(util.GetString([]string{"select_language"}))
 		}
 	})
@@ -21,6 +20,7 @@ func (s MainMenuScene) Start(bot *chatbot.Bot) {
 
 func (s MainMenuScene) SendMainMenu(message *chatbot.Notification) {
 	text, _ := message.Text()
+
 	switch text {
 	case "1":
 		s.sendMainMenu(message, "en")
@@ -45,14 +45,16 @@ func (s MainMenuScene) sendMainMenu(message *chatbot.Notification, lang string) 
 	message.UpdateStateData(map[string]interface{}{"lang": lang})
 
 	var welcomeFileURL string
+
 	if lang == "en" {
 		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_en.jpg"
 	} else {
 		welcomeFileURL = "https://raw.githubusercontent.com/green-api/whatsapp-demo-chatbot-golang/refs/heads/master/assets/welcome_ru.jpg"
 	}
+
 	message.SendUrlFile(welcomeFileURL,
 		"welcome.jpg",
 		util.GetString([]string{"welcome_message", lang})+"*"+message.Body["senderData"].(map[string]interface{})["senderName"].(string)+"*!"+"\n"+util.GetString([]string{"menu", lang}))
-	message.ActivateNextScene(EndpointsScene{})
+	message.ActivateNextScene(EndpointsScene{Calls: s.Calls})
 
 }
