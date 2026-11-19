@@ -1,6 +1,6 @@
 # Architecture of whatsapp-demo-chatbot-golang
 
-This Go executable lets developers exercise WhatsApp operations through a conversation. An operator runs it with a connected GREEN-API instance and an OpenAI key. GREEN-API handles transport, the chatbot dependency dispatches notifications, and local scenes choose replies. Deployment, durable storage and a downstream Go library API are outside the application’s scope. See [agent instructions](AGENTS.md) for change decisions and [contribution rules](CONTRIBUTING.md) for review and verification.
+This Go executable lets developers exercise WhatsApp operations through a conversation. An operator runs it with a connected GREEN-API instance and can supply an OpenAI key to enable GPT and calls. GREEN-API handles transport, the chatbot dependency dispatches notifications, and local scenes choose replies. Deployment, durable storage and a downstream Go library API are outside the application’s scope. See [agent instructions](AGENTS.md) for change decisions and [contribution rules](CONTRIBUTING.md) for review and verification.
 
 ## Component ownership
 
@@ -15,10 +15,10 @@ This Go executable lets developers exercise WhatsApp operations through a conver
 
 ## Startup and receipt lifecycle
 
-1. `main` attempts to load `.env`. A missing file is tolerated, other load errors produce a warning. Empty `ID_INSTANCE`, `AUTH_TOKEN` or `OPENAI_API_KEY` terminates startup, including for messaging-only use.
-2. It constructs the chatbot and GPT helper, configures GPT-4o, system prompt and history limit 10, and registers the helper once. The bot constructor owns the ErrorChannel consumer.
-3. Account.SetSettings enables incoming message, poll and call webhooks, incoming read marking and keep-online status. It disables outgoing, state, outgoing API message and outgoing message webhooks. Failure is fatal. Only then does main install StartScene, start the call worker and begin receiving notifications.
-4. The SDK owns receipt and dispatch. On SIGINT or SIGTERM, main closes call admission and waits for call work up to the configured shutdown timeout. Cancellation interrupts the SDK receive request. A dispatched callback finishes its acknowledgment before the receiver returns. After call execution stops, accepted deliveries get a separate 50-second budget before cancellation and cleanup. Acknowledgment relative to callback failure, delivery order, redelivery, old-notification deletion, settings propagation time and graceful shutdown are **not verified**. These affect whether repeating a side effect is safe.
+1. `main` attempts to load `.env`. A missing file is tolerated, other load errors produce a warning. Empty `ID_INSTANCE` or `AUTH_TOKEN` terminates startup. A blank `OPENAI_API_KEY` allows messaging-only use.
+2. It constructs the chatbot and delivery client. With an OpenAI key, it constructs the call coordinator and registers the GPT helper with GPT-4o, a system prompt and history limit 10. The bot constructor owns the ErrorChannel consumer.
+3. Account.SetSettings enables incoming message, poll and call webhooks, incoming read marking and keep-online status. It disables outgoing, state, outgoing API message and outgoing message webhooks. Failure is fatal. Only then does main install StartScene, start the call worker if configured and begin receiving notifications.
+4. The SDK owns receipt and dispatch. On SIGINT or SIGTERM, main closes call admission and waits for call work up to the configured shutdown timeout. On signal-driven shutdown, the SDK receive loop ends with the process. An in-flight receive, callback or acknowledgment may be interrupted. After call execution stops, accepted deliveries get a separate 50-second budget before cancellation and cleanup. Acknowledgment relative to callback failure, delivery order, redelivery, old-notification deletion, settings propagation time and graceful shutdown are **not verified**. These affect whether repeating a side effect is safe.
 
 ## Dialogue admission, timeout and dispatch
 
@@ -48,7 +48,7 @@ Option 11 sends instructions and a bot contact before activating CreateGroup. Me
 
 ## GPT entry, reply and history
 
-Option 14 checks the registry before activation. A missing helper sends sorry_message and leaves the endpoint scene active. Successful entry sends an introduction and initializes a fresh session seeded with the helper’s system prompt, including on re-entry. Within GptScene, expiry and exit precede model processing. Exit words depend on locale, compare lowercased text without trimming, and include universal menu. Exit sends menu media then activates Endpoints. English media is used for en/es/he on GPT exit and endpoint menu refresh, but only for en on initial selection and group menu return.
+Option 14 checks the registry before activation. A missing helper sends chat_gpt_error and leaves the endpoint scene active. Successful entry sends an introduction and initializes a fresh session seeded with the helper’s system prompt, including on re-entry. Within GptScene, expiry and exit precede model processing. Exit words depend on locale, compare lowercased text without trimming, and include universal menu. Exit sends menu media then activates Endpoints. English media is used for en/es/he on GPT exit and endpoint menu refresh, but only for en on initial selection and group menu return.
 
 For an ordinary turn, loadGptSessionFromState decodes the string gptSessionJson into the dependency’s GPTSessionData. Missing, wrongly typed, empty or malformed JSON triggers logged reinitialization. The helper receives the notification, session and context.Background(), without a local deadline or cancellation path. Helper absence or processing failure sends chat_gpt_error and returns. Success attempts SendText before saving the updated session. Delivery is unchecked, so history can advance despite a send failure. Conversely a nil session or serialization failure logs after the reply attempt.
 
@@ -59,10 +59,10 @@ Saving updates the dialogue map, deletes the legacy gptSession key and calls Set
 - Endpoint 16 queues an outgoing call in a private chat. Endpoint 17 uploads the incoming-call illustration with localized instructions. Each scene registers the incoming webhook handler and runs the call message handler before regular text commands.
 - [The coordinator](calls/coordinator.go) owns one FIFO for both directions. A sender keeps their slot through result delivery. During SDK execution, chat handlers read snapshots and send matching hangups to the SDK service. The worker rechecks the incoming deadline before execution.
 - [Delivery](calls/delivery.go) sends the result before its MP3 attachment and closes the SDK result on every path. The coordinator runs up to four background deliveries and uses the worker when all four slots are occupied.
-- The Go queue holds up to 256 waiting calls. Go retains the existing startup requirement for an OpenAI key. The locally patched v1.1.0 receiver validates the receipt and caller address before scene dispatch.
+- The Go queue holds up to 256 waiting calls. Without an OpenAI key, option 16 sends `call_failed`, incoming calls are ignored and option 17 still sends the instruction. The upstream v1.1.0 receiver logs complete webhook payloads and may panic before scene dispatch if an incoming call lacks a string `from` field.
 
 ## Integration and evidence limits
 
-Text, links, images, handlers and GPT configuration are application customization points. Constructors and notification types are concrete. The registry supplies a GPT helper pointer, with no provider replacement interface. The operator supplies runtime assets, credentials and hosting. LICENCE identifies Attribution-NoDerivatives 4.0 International. Technical editability alone establishes no branded distribution permission.
+Text, links, images, handlers and GPT configuration are application customization points. Constructors and notification types are concrete. The registry supplies a GPT helper pointer, with no provider replacement interface. The operator supplies runtime assets, credentials and hosting. The repository is licensed under the [MIT License](LICENCE). Technical editability alone establishes no branded distribution permission.
 
 Local tests exercise call setup, queueing, webhook routing and result delivery with fake providers. Live WhatsApp and OpenAI interoperability, MP3 playback and account effects require a test instance.

@@ -133,6 +133,34 @@ func TestMenuThroughSDKScenesWithoutOpenAI(t *testing.T) {
 	}
 }
 
+func TestFreshLIDChatThroughSDKScenes(t *testing.T) {
+	t.Chdir("..")
+	const chatID = "10006@lid"
+	const senderName = "Test User"
+	hello := textEvent(chatID, chatID, "Привет", "extendedTextMessage")
+	selectLanguage := textEvent(chatID, chatID, "3", "textMessage")
+	selectLanguage["senderData"].(map[string]any)["senderName"] = senderName
+	server, provider := startCallProvider(t, []map[string]any{
+		hello,
+		selectLanguage,
+		incomingEvent(finalUser, "last", "hungUp"),
+	})
+	bot := chatbot.NewBot("1000000001", "test")
+	defer close(bot.ErrorChannel)
+	bot.APIURL, bot.MediaURL = server.URL, server.URL
+	bot.CleanNotificationQueue = false
+	bot.StateManager = stopOnLastEvent{StateManager: bot.StateManager, bot: bot}
+	bot.SetStartScene(StartScene{})
+
+	bot.StartReceivingNotifications()
+
+	welcome := CallText("welcome_message", "ru") + "*" + senderName + "*!\n" + CallText("menu", "ru")
+	provider.check(t, []providerReply{
+		{"sendMessage", chatID, util.GetString([]string{"specify_language"}), ""},
+		{"sendFileByUrl", chatID, welcome, "welcome.jpg"},
+	})
+}
+
 func prepareCallScenes(bot *chatbot.Bot, handlers *CallHandlers) {
 	bot.SetStartScene(StartScene{Calls: handlers})
 
@@ -159,7 +187,7 @@ func stopTestCoordinator(t *testing.T, c *calls.CallCoordinator) {
 func textEvent(sender, chat, text, kind string) map[string]any {
 	data := map[string]any{"typeMessage": kind, "textMessageData": map[string]any{"textMessage": text}}
 
-	if kind == "quotedMessage" {
+	if kind == "quotedMessage" || kind == "extendedTextMessage" {
 		data["extendedTextMessageData"] = map[string]any{"text": text}
 	}
 
@@ -173,11 +201,12 @@ func incomingEvent(sender, id, status string) map[string]any {
 type providerReply struct{ method, chat, text, file string }
 
 type callProvider struct {
-	mu       sync.Mutex
-	events   []map[string]any
-	received int
-	deleted  int
-	sent     []providerReply
+	mu            sync.Mutex
+	events        []map[string]any
+	received      int
+	deleted       int
+	readsWithBody int
+	sent          []providerReply
 }
 
 func startCallProvider(t *testing.T, events []map[string]any) (*httptest.Server, *callProvider) {
@@ -206,6 +235,10 @@ func (p *callProvider) serveHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch method {
 	case "receiveNotification":
+		if body, _ := io.ReadAll(r.Body); len(body) != 0 {
+			p.readsWithBody++
+		}
+
 		if p.received == len(p.events) {
 			io.WriteString(w, "null")
 			return
@@ -238,6 +271,10 @@ func (p *callProvider) check(t *testing.T, want []providerReply) {
 	t.Helper()
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	if p.readsWithBody != 0 {
+		t.Errorf("%d receiveNotification requests had a body", p.readsWithBody)
+	}
+
 	if p.deleted != len(p.events) {
 		t.Errorf("deleted %d notifications; want %d", p.deleted, len(p.events))
 	}

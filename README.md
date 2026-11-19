@@ -56,7 +56,7 @@ In order to set up a chatbot on your Whatsapp account, you need to go to [your p
     apiTokenInstance
 ```
 
-An [OpenAI API key](https://platform.openai.com/) is optional for startup. If you leave it blank, option 14 (GPT) and option 16 (outgoing call) reply with an error, and the bot ignores incoming calls. Option 17 still shows the calling instructions.
+The `OPENAI_API_KEY` variable is optional for startup. Set it to an [OpenAI API key](https://platform.openai.com/) to enable GPT and voice calls. If you leave it blank, option 14 (GPT) and option 16 (outgoing call) reply with an error, and the bot ignores incoming calls. Option 17 still shows the calling instructions.
 
 Copy [`.env.example`](.env.example) to `.env` from the project root.
 
@@ -166,7 +166,7 @@ Welcome to GREEN-API chatbot, user! GREEN-API provides the following types of da
 4. Contact 📱
 5. Geolocation 🌎
 6. ...
-14. 🔥 Conversation with ChatGPT 🤖
+14. Conversation with ChatGPT 🤖
 
 To return to the beginning write stop or 0
 ```
@@ -276,7 +276,7 @@ The chatbot integrates with OpenAI's GPT models using the [whatsapp-chatgpt-go](
 
 ### How it works
 
-1. **Initialization**: The GPT bot is initialized in `main.go` with configuration including the OpenAI API key and system prompt.
+1. **Initialization**: When `OPENAI_API_KEY` is set, `main.go` initializes the GPT bot with the key and a system prompt.
 2. **Registry Pattern**: The bot instance is stored in a registry to be accessible from any scene.
 3. **GPT Scene**: A dedicated scene (`gptScene.go`) handles the GPT conversation mode.
 4. **Session Management**: The GPT scene maintains conversation history using the session data, enabling contextual exchanges.
