@@ -1,10 +1,12 @@
 package calls
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -21,6 +23,58 @@ import (
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+func TestDeliveryReportsTransportCauseWithoutRequestURL(t *testing.T) {
+	api := greenapi.GreenAPI{APIURL: "https://api.example", IDInstance: "1000000001", APITokenInstance: "sensitive-token"}
+	client := NewDeliveryClient(api)
+	client.http.Transport = roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return nil, context.Canceled
+	})
+
+	err := client.SendMessage(context.Background(), alice, "test")
+
+	if !errors.Is(err, context.Canceled) || strings.Contains(err.Error(), api.APITokenInstance) {
+		t.Fatalf("unexpected delivery error: %v", err)
+	}
+
+	var logs bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
+	t.Cleanup(func() { slog.SetDefault(previous) })
+	delivery := CallDeliveryService{
+		Notifier: CallNotifier{Client: client, Text: func(string, string) string { return "test" }},
+	}
+	delivery.Deliver(context.Background(), sdk.NewCallSession(alice, alice, "en"), nil)
+
+	got := logs.String()
+
+	if !strings.Contains(got, "sendMessage request failed: context canceled") ||
+		strings.Contains(got, api.APITokenInstance) || strings.Contains(got, api.APIURL) {
+		t.Fatalf("unexpected delivery diagnostic: %s", got)
+	}
+}
+
+func TestDeliveryDistinguishesHTTPAndResponseErrors(t *testing.T) {
+	for _, tc := range []struct {
+		status     int
+		body, want string
+	}{
+		{403, "private provider response", "sendMessage returned HTTP 403"},
+		{200, "{", "decode sendMessage response: unexpected EOF"},
+		{200, "{}", "sendMessage response missing idMessage"},
+	} {
+		t.Run(tc.want, func(t *testing.T) {
+			client := NewDeliveryClient(greenapi.GreenAPI{APIURL: "https://api.example"})
+			client.http.Transport = roundTripFunc(func(*http.Request) (*http.Response, error) {
+				return &http.Response{StatusCode: tc.status, Body: io.NopCloser(strings.NewReader(tc.body))}, nil
+			})
+
+			if err := client.SendMessage(context.Background(), alice, "test"); err == nil || err.Error() != tc.want {
+				t.Fatalf("delivery error = %v; want %q", err, tc.want)
+			}
+		})
+	}
+}
 
 func TestCallDeliveryTextThenRecordingAndCleanup(t *testing.T) {
 	for _, tc := range []struct {

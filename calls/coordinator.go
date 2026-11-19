@@ -338,8 +338,8 @@ func (c *CallCoordinator) runSession(ctx context.Context, entry *callEntry) *sdk
 		c.fsm.Apply(session, event, sdk.TransitionDetails{ErrorCode: &code})
 	}
 
-	if err != nil && !entry.callerLeft && !c.closed {
-		slog.Warn("Call execution failed", "session", session.SessionID)
+	if !entry.callerLeft && !c.closed && (err != nil || session.State == sdk.CallStateFailed) {
+		slog.Warn("Call execution failed", "session", session.SessionID, "error_code", session.ErrorCode, "error", err)
 	}
 
 	entry.cancel = nil

@@ -146,7 +146,7 @@ func (c *CallCoordinator) rejectInBackground(key incomingKey) {
 		defer cancel()
 
 		if _, err := c.executor.RejectIncoming(ctx, key.callID, key.senderID); err != nil {
-			slog.Warn("Unable to reject incoming call")
+			slog.Warn("Unable to reject incoming call", "error", err)
 		}
 	}
 

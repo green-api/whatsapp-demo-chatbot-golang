@@ -23,7 +23,7 @@ type CallHandlers struct {
 }
 
 func (h *CallHandlers) register(bot *chatbot.Bot, next func(*chatbot.Notification)) {
-	if h == nil {
+	if h == nil || h.Coordinator == nil {
 		bot.IncomingMessageHandler(next)
 		return
 	}
@@ -125,7 +125,7 @@ func (h *CallHandlers) handleCallOption(n *chatbot.Notification, lang string) bo
 		caption := CallText("call_incoming_instruction", lang)
 
 		if err := h.Delivery.Upload(context.Background(), chatID, "assets/"+incomingCallImage, incomingCallImage, caption); err != nil {
-			slog.Warn("Unable to send incoming call instructions")
+			slog.Warn("Unable to send incoming call instructions", "error", err)
 		}
 	default:
 		return false
@@ -135,6 +135,10 @@ func (h *CallHandlers) handleCallOption(n *chatbot.Notification, lang string) bo
 }
 
 func (h *CallHandlers) enqueueOutgoing(senderID, chatID, lang string) string {
+	if h.Coordinator == nil {
+		return "call_failed"
+	}
+
 	if strings.HasSuffix(chatID, "@g.us") {
 		return "call_private_chat_only"
 	}
@@ -142,6 +146,7 @@ func (h *CallHandlers) enqueueOutgoing(senderID, chatID, lang string) string {
 	result, err := h.Coordinator.Enqueue(senderID, chatID, lang)
 
 	if err != nil {
+		slog.Warn("Unable to queue outgoing call", "error", err)
 		return "call_failed"
 	}
 
@@ -157,10 +162,12 @@ func (h *CallHandlers) enqueueOutgoing(senderID, chatID, lang string) string {
 }
 
 func (h *CallHandlers) sendReply(chatID, key, lang string) {
-	if key != "" {
-		if err := h.Delivery.SendMessage(context.Background(), chatID, CallText(key, lang)); err != nil {
-			slog.Warn("Unable to send call status", "message", key)
-		}
+	if key == "" {
+		return
+	}
+
+	if err := h.Delivery.SendMessage(context.Background(), chatID, CallText(key, lang)); err != nil {
+		slog.Warn("Unable to send call status", "message_key", key, "error", err)
 	}
 }
 
@@ -175,7 +182,7 @@ func (h *CallHandlers) sendCallMenu(chatID, lang string) {
 	caption := strings.TrimLeft(CallText("menu", lang), "\r\n\t ")
 
 	if err := h.Delivery.SendFileByURL(context.Background(), chatID, url, "welcome.jpg", caption); err != nil {
-		slog.Warn("Unable to send menu after call cancellation")
+		slog.Warn("Unable to send menu after call cancellation", "error", err)
 	}
 }
 

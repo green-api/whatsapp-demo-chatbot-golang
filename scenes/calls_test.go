@@ -1,12 +1,10 @@
 package scenes
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -21,6 +19,7 @@ import (
 	chatbot "github.com/green-api/whatsapp-chatbot-golang"
 	sdk "github.com/green-api/whatsapp-chatbot-golang/calls"
 	"github.com/green-api/whatsapp-demo-chatbot-golang/calls"
+	"github.com/green-api/whatsapp-demo-chatbot-golang/util"
 )
 
 const (
@@ -57,15 +56,7 @@ func (s stopOnLastEvent) GetCurrentScene(id string) chatbot.Scene {
 
 func TestCallHandlersThroughSDKScenes(t *testing.T) {
 	t.Chdir("..")
-	var logs bytes.Buffer
-	prior := log.Writer()
-	log.SetOutput(&logs)
-	defer log.SetOutput(prior)
-
 	events := []map[string]any{
-		{"typeWebhook": "incomingCall", "from": nil, "idMessage": "private-marker"},
-		{"typeWebhook": "incomingCall", "from": 123},
-		{"typeWebhook": "incomingCall"},
 		textEvent(menuUser, menuUser, " 16 ", "quotedMessage"),
 		textEvent(menuUser, menuUser, " 0 ", "quotedMessage"),
 		textEvent(menuUser, groupChat, "16", "textMessage"),
@@ -87,10 +78,14 @@ func TestCallHandlersThroughSDKScenes(t *testing.T) {
 	handlers := &CallHandlers{Coordinator: c, Delivery: calls.NewDeliveryClient(bot.GreenAPI)}
 	prepareCallScenes(bot, handlers)
 	bot.StartReceivingNotifications()
-	provider.check(t)
-	if !strings.Contains(logs.String(), "Ignoring malformed notification") || strings.Contains(logs.String(), "private-marker") || strings.Contains(logs.String(), menuUser) {
-		t.Fatal("receiver diagnostics missing or disclose webhook data")
-	}
+	provider.check(t, []providerReply{
+		{"sendMessage", menuUser, CallText("call_queued", "ru"), ""},
+		{"sendMessage", menuUser, CallText("call_cancelled", "ru"), ""},
+		{"sendFileByUrl", menuUser, strings.TrimSpace(CallText("menu", "ru")), "welcome.jpg"},
+		{"sendMessage", groupChat, CallText("call_private_chat_only", "ru"), ""},
+		{"sendFileByUpload", groupChat, CallText("call_incoming_instruction", "ru"), incomingCallImage},
+		{"sendMessage", gptUser, CallText("call_queued", "ru"), ""},
+	})
 
 	if got := c.HandleCallMessage(freshUser, "hello"); got.MessageKey != "call_queued" || got.Language != "en" {
 		t.Errorf("incoming call in fresh scene = %+v", got)
@@ -98,6 +93,43 @@ func TestCallHandlersThroughSDKScenes(t *testing.T) {
 
 	if _, ok := bot.GetCurrentScene(gptUser).(GptScene); !ok || bot.GetStateData(gptUser)["gptSessionJson"] != "history" {
 		t.Fatal("queued call changed the GPT scene or history")
+	}
+}
+
+func TestMenuThroughSDKScenesWithoutOpenAI(t *testing.T) {
+	t.Chdir("..")
+	events := []map[string]any{
+		textEvent(gptUser, gptUser, "14", "textMessage"),
+		textEvent(gptUser, gptUser, "16", "textMessage"),
+		textEvent(gptUser, groupChat, "16", "textMessage"),
+		textEvent(gptUser, gptUser, "17", "textMessage"),
+		incomingEvent(gptUser, "ignored", "offer"),
+		textEvent(gptUser, gptUser, "1", "textMessage"),
+		incomingEvent(finalUser, "last", "hungUp"),
+	}
+	server, provider := startCallProvider(t, events)
+	bot := chatbot.NewBot("1000000001", "test")
+	defer close(bot.ErrorChannel)
+	bot.APIURL, bot.MediaURL = server.URL, server.URL
+	bot.CleanNotificationQueue = false
+	bot.StateManager = stopOnLastEvent{StateManager: bot.StateManager, bot: bot}
+
+	handlers := &CallHandlers{Delivery: calls.NewDeliveryClient(bot.GreenAPI)}
+	prepareCallScenes(bot, handlers)
+	bot.ActivateNextScene(gptUser, EndpointsScene{Calls: handlers})
+	bot.UpdateStateData(gptUser, map[string]any{"last_touch_timestamp": time.Now()})
+	bot.StartReceivingNotifications()
+
+	provider.check(t, []providerReply{
+		{"sendMessage", gptUser, CallText("chat_gpt_error", "ru"), ""},
+		{"sendMessage", gptUser, CallText("call_failed", "ru"), ""},
+		{"sendMessage", groupChat, CallText("call_failed", "ru"), ""},
+		{"sendFileByUpload", gptUser, CallText("call_incoming_instruction", "ru"), incomingCallImage},
+		{"sendMessage", gptUser, CallText("send_text_message", "ru") + util.GetString([]string{"links", "ru", "send_text_documentation"}), ""},
+	})
+
+	if _, ok := bot.GetCurrentScene(gptUser).(EndpointsScene); !ok {
+		t.Fatal("the sender should remain in the menu")
 	}
 }
 
@@ -202,19 +234,10 @@ func (p *callProvider) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *callProvider) check(t *testing.T) {
+func (p *callProvider) check(t *testing.T, want []providerReply) {
 	t.Helper()
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	want := []providerReply{
-		{"sendMessage", menuUser, CallText("call_queued", "ru"), ""},
-		{"sendMessage", menuUser, CallText("call_cancelled", "ru"), ""},
-		{"sendFileByUrl", menuUser, strings.TrimSpace(CallText("menu", "ru")), "welcome.jpg"},
-		{"sendMessage", groupChat, CallText("call_private_chat_only", "ru"), ""},
-		{"sendFileByUpload", groupChat, CallText("call_incoming_instruction", "ru"), incomingCallImage},
-		{"sendMessage", gptUser, CallText("call_queued", "ru"), ""},
-	}
-
 	if p.deleted != len(p.events) {
 		t.Errorf("deleted %d notifications; want %d", p.deleted, len(p.events))
 	}

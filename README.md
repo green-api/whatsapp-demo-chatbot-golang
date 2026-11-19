@@ -56,13 +56,20 @@ In order to set up a chatbot on your Whatsapp account, you need to go to [your p
     apiTokenInstance
 ```
 
-You'll also need an OpenAI API key to use the GPT functionality. You can obtain one from the [OpenAI platform](https://platform.openai.com/).
+An [OpenAI API key](https://platform.openai.com/) is optional for startup. If you leave it blank, option 14 (GPT) and option 16 (outgoing call) reply with an error, and the bot ignores incoming calls. Option 17 still shows the calling instructions.
 
-Create a `.env` file in the project root with the following variables:
+Copy [`.env.example`](.env.example) to `.env` from the project root.
+
+```sh
+cp .env.example .env
 ```
+
+Fill in the instance credentials in `.env`.
+
+```dotenv
 ID_INSTANCE=your_instance_id
 AUTH_TOKEN=your_api_token
-OPENAI_API_KEY=your_openai_api_key
+OPENAI_API_KEY=
 ```
 
 Don't forget to enable all notifications in your instance settings, so that the chatbot can immediately start receiving messages.
@@ -278,6 +285,4 @@ The chatbot integrates with OpenAI's GPT models using the [whatsapp-chatgpt-go](
 
 ## License
 
-Licensed under [Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/).
-
-[LICENSE](https://github.com/green-api/whatsapp-demo-chatbot-golang/blob/master/LICENCE).
+Licensed under [MIT License](LICENCE).

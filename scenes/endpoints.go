@@ -166,8 +166,7 @@ func (s EndpointsScene) handleDemoCommand(message *chatbot.Notification, lang, c
 		gptHelper := registry.GetGptHelper()
 
 		if gptHelper == nil {
-			log.Println("Error: gptHelperBot is nil when trying to start GPT scene")
-			message.SendText(util.GetString([]string{"sorry_message", lang}))
+			message.SendText(util.GetString([]string{"chat_gpt_error", lang}))
 			return
 		}
 

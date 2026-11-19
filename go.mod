@@ -46,5 +46,3 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	layeh.com/gopus v0.0.0-20210501142526-1ee02d434e32 // indirect
 )
-
-replace github.com/green-api/whatsapp-chatbot-golang => ./third_party/whatsapp-chatbot-golang

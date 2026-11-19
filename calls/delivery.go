@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,12 +42,12 @@ func (d CallDeliveryService) Deliver(ctx context.Context, session *sdk.CallSessi
 	if result != nil {
 		defer func() {
 			if err := result.Close(); err != nil {
-				slog.Warn("Unable to remove recording", "session", session.SessionID)
+				slog.Warn("Unable to remove recording", "session", session.SessionID, "error", err)
 			}
 		}()
 
-		if result.RecordingError() != nil {
-			slog.Warn("Unable to export recording", "session", session.SessionID)
+		if err := result.RecordingError(); err != nil {
+			slog.Warn("Unable to export recording", "session", session.SessionID, "error", err)
 		}
 	}
 
@@ -55,13 +56,13 @@ func (d CallDeliveryService) Deliver(ctx context.Context, session *sdk.CallSessi
 	}
 
 	if err := d.Notifier.NotifyResult(ctx, session); err != nil {
-		slog.Warn("Unable to deliver call result", "session", session.SessionID)
+		slog.Warn("Unable to deliver call result", "session", session.SessionID, "error", err)
 		return
 	}
 
 	if result != nil && result.RecordingPath() != "" && d.Uploader != nil {
 		if err := d.Uploader.Send(ctx, session.ChatID, result.RecordingPath()); err != nil {
-			slog.Warn("Unable to upload recording", "session", session.SessionID)
+			slog.Warn("Unable to upload recording", "session", session.SessionID, "error", err)
 		}
 	}
 }
@@ -201,28 +202,39 @@ func (c *DeliveryClient) send(parent context.Context, host, method, contentType 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, body)
 
 	if err != nil {
-		return errors.New("invalid delivery URL")
+		return fmt.Errorf("%s: invalid delivery URL", method)
 	}
 
 	request.Header.Set("Content-Type", contentType)
 	response, err := c.http.Do(request)
 
 	if err != nil {
-		return errors.New("call delivery request failed")
+		// net/http includes the token-bearing request URL in this wrapper.
+		var requestErr *url.Error
+
+		if errors.As(err, &requestErr) {
+			err = requestErr.Err
+		}
+
+		return fmt.Errorf("%s request failed: %w", method, err)
 	}
 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("call delivery returned HTTP %d", response.StatusCode)
+		return fmt.Errorf("%s returned HTTP %d", method, response.StatusCode)
 	}
 
 	var reply struct {
 		MessageID string `json:"idMessage"`
 	}
 
-	if err := json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&reply); err != nil || reply.MessageID == "" {
-		return errors.New("call delivery response missing idMessage")
+	if err := json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&reply); err != nil {
+		return fmt.Errorf("decode %s response: %w", method, err)
+	}
+
+	if reply.MessageID == "" {
+		return fmt.Errorf("%s response missing idMessage", method)
 	}
 
 	return nil

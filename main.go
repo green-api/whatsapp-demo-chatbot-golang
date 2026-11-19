@@ -3,7 +3,11 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
+	"log/slog"
+	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -33,39 +37,52 @@ func main() {
 	}
 
 	baseBot := chatbot.NewBot(credentials.instanceID, credentials.token)
-
-	config, err := calls.LoadConfig()
+	handlers := &scenes.CallHandlers{Delivery: calls.NewDeliveryClient(baseBot.GreenAPI)}
+	shutdown, err := configureOpenAI(baseBot.APIURL, credentials, handlers)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	service, err := config.NewService(baseBot.APIURL, credentials.instanceID, credentials.token, credentials.openAIKey)
-
-	if err != nil {
-		log.Fatalf("Cannot configure call service: %v", err)
+	if err := configureAccount(baseBot.Account()); err != nil {
+		log.Fatal(settingsErrorText(err, baseBot.GreenAPI))
 	}
 
-	delivery := calls.NewDeliveryClient(baseBot.GreenAPI)
+	baseBot.SetStartScene(scenes.StartScene{Calls: handlers})
+	runBot(baseBot, handlers.Coordinator, shutdown)
+}
+
+func configureOpenAI(apiURL string, credentials botCredentials, handlers *scenes.CallHandlers) (time.Duration, error) {
+	if credentials.openAIKey == "" {
+		slog.Warn("OPENAI_API_KEY is not set; ChatGPT and calls are unavailable")
+		return 0, nil
+	}
+
+	config, err := calls.LoadConfig()
+
+	if err != nil {
+		return 0, err
+	}
+
+	service, err := config.NewService(apiURL, credentials.instanceID, credentials.token, credentials.openAIKey)
+
+	if err != nil {
+		return 0, fmt.Errorf("configure call service: %w", err)
+	}
+
 	prompts := make(map[string]string)
 
 	for _, lang := range []string{"en", "kz", "ru", "es", "he"} {
 		prompts[lang] = scenes.CallText("call_prompts", lang)
 	}
 
-	coordinator := calls.NewCallCoordinator(service, calls.CallDeliveryService{
-		Notifier: calls.CallNotifier{Client: delivery, Text: scenes.CallText},
-		Uploader: calls.RecordingUploader{Client: delivery},
+	handlers.Coordinator = calls.NewCallCoordinator(service, calls.CallDeliveryService{
+		Notifier: calls.CallNotifier{Client: handlers.Delivery, Text: scenes.CallText},
+		Uploader: calls.RecordingUploader{Client: handlers.Delivery},
 	}, prompts, config.IncomingRing)
 
 	registerGPT(credentials.instanceID, credentials.token, credentials.openAIKey)
-
-	if err := configureAccount(baseBot.Account()); err != nil {
-		log.Fatalf("Failed to set Green API settings: %v", err)
-	}
-
-	baseBot.SetStartScene(scenes.StartScene{Calls: &scenes.CallHandlers{Coordinator: coordinator, Delivery: delivery}})
-	runBot(baseBot, coordinator, config.Shutdown)
+	return config.Shutdown, nil
 }
 
 type botCredentials struct{ instanceID, token, openAIKey string }
@@ -79,10 +96,6 @@ func loadCredentials() (botCredentials, error) {
 
 	if credentials.instanceID == "" || credentials.token == "" {
 		return botCredentials{}, errors.New("ID_INSTANCE and AUTH_TOKEN must be set in .env file or environment variables")
-	}
-
-	if credentials.openAIKey == "" {
-		return botCredentials{}, errors.New("OPENAI_API_KEY must be set in .env file or environment variables")
 	}
 
 	return credentials, nil
@@ -118,27 +131,51 @@ func configureAccount(account interface {
 	)
 
 	if err != nil {
-		return errors.New("settings request failed")
+		return fmt.Errorf("set GREEN-API settings: %w", err)
 	}
 
-	if response == nil || response.StatusCode != 200 {
-		return errors.New("settings request was not accepted")
+	if response == nil {
+		return errors.New("set GREEN-API settings: empty response")
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("set GREEN-API settings: HTTP %d", response.StatusCode)
 	}
 
 	return nil
 }
 
+// The settings SDK may include the request endpoint in an opaque error.
+func settingsErrorText(err error, api greenapi.GreenAPI) string {
+	detail := err.Error()
+	sensitive := []string{api.APIURL, api.IDInstance, api.APITokenInstance,
+		url.PathEscape(api.APITokenInstance), url.QueryEscape(api.APITokenInstance)}
+
+	if endpoint, err := url.Parse(api.APIURL); err == nil {
+		sensitive = append(sensitive, endpoint.Hostname())
+	}
+
+	for _, value := range sensitive {
+		if value != "" {
+			detail = strings.ReplaceAll(detail, value, "[redacted]")
+		}
+	}
+
+	return detail
+}
+
 func runBot(bot *chatbot.Bot, coordinator *calls.CallCoordinator, shutdown time.Duration) {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	coordinator.Start()
+
+	if coordinator != nil {
+		coordinator.Start()
+	}
 
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		if err := bot.ReceiveNotifications(ctx); err != nil && !errors.Is(err, context.Canceled) {
-			log.Print("Notification receiver stopped with an error")
-		}
+		bot.StartReceivingNotifications()
 	}()
 
 	select {
@@ -146,6 +183,8 @@ func runBot(bot *chatbot.Bot, coordinator *calls.CallCoordinator, shutdown time.
 	case <-done:
 	}
 
-	coordinator.Shutdown(shutdown, 50*time.Second)
-	<-done
+	// The SDK receiver runs until process exit when shutdown starts via a signal.
+	if coordinator != nil {
+		coordinator.Shutdown(shutdown, 50*time.Second)
+	}
 }

@@ -135,9 +135,10 @@ func TestCallCoordinatorRetainsSenderThroughDelivery(t *testing.T) {
 			}
 		},
 		execute: func(_ context.Context, s *sdk.CallSession, transition sdk.TransitionCallback) (*sdk.CallExecutionResult, error) {
+			transition(s, sdk.CallEventRemoteAccepted)
+			transition(s, sdk.CallEventBridgeReady)
 			executing <- s.SenderID
 			<-finishCall
-			transition(s, sdk.CallEventRemoteAccepted)
 			transition(s, sdk.CallEventRemoteIdle)
 			return nil, nil
 		},
@@ -151,8 +152,12 @@ func TestCallCoordinatorRetainsSenderThroughDelivery(t *testing.T) {
 	enqueue(t, c, alice, Created)
 	c.Start()
 
-	if receive(t, executing) != alice || c.HandleCallMessage(alice, " 0 ").MessageKey != "" {
-		t.Fatal("0 should be silent after the worker takes the call")
+	if receive(t, executing) != alice {
+		t.Fatal("first call belongs to the wrong sender")
+	}
+
+	if got := c.HandleCallMessage(alice, " 0 "); !got.Handled || got.MessageKey != "" {
+		t.Fatalf("0 should be consumed silently during a connected call: %+v", got)
 	}
 
 	if got := c.HandleCallMessage(alice, "menu"); got.MessageKey != "call_in_progress" || !got.Handled {

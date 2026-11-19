@@ -57,13 +57,20 @@ git clone https://github.com/green-api/whatsapp-demo-chatbot-golang
     apiTokenInstance
 ```
 
-Вам также понадобится API-ключ OpenAI для использования функциональности GPT. Вы можете получить его на [платформе OpenAI](https://platform.openai.com/).
+[Ключ OpenAI](https://platform.openai.com/) для запуска необязателен. С пустым ключом пункты 14 (GPT) и 16 (исходящий звонок) отвечают сообщением об ошибке, а бот игнорирует входящие звонки. Пункт 17 по-прежнему показывает инструкцию.
 
-Создайте файл `.env` в корне проекта со следующими переменными:
+Скопируйте [`.env.example`](.env.example) в `.env` из корня проекта.
+
+```sh
+cp .env.example .env
 ```
+
+Укажите данные инстанса в `.env`.
+
+```dotenv
 ID_INSTANCE=ваш_id_инстанса
 AUTH_TOKEN=ваш_api_токен
-OPENAI_API_KEY=ваш_openai_api_ключ
+OPENAI_API_KEY=
 ```
 
 Не забудьте включить все уведомления в настройках инстанса, чтобы чатбот мог сразу начать принимать сообщения.
@@ -277,6 +284,4 @@ func main() {
 
 ## Лицензия
 
-Лицензировано на условиях [Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/).
-
-[LICENSE](https://github.com/green-api/whatsapp-demo-chatbot-golang/blob/master/LICENCE).
+Лицензировано на условиях [MIT License](LICENCE).
